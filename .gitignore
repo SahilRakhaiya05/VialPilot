@@ -1,0 +1,36 @@
+# Secrets and local env
+.env
+.env.local
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Data and runtime
+data/
+logs/
+observations/
+/models/
+/weights/
+*.pth
+*.pt
+*.bin
+
+# IDE / tooling
+.idea/
+.vscode/
+terminals/
+agent-tools/
+mcps/
+
+# Misc
+VIMABench/
+VIMABench.zip
+/calibration/calibration_images/
+/src/*.ipynb
+demo_assets/
+calibration/
