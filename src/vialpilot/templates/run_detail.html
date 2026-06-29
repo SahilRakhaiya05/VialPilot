@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Run{% endblock %}
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+{% endblock %}
+{% block main_class %}container page-shell{% endblock %}
+{% block content %}
+<div class="run-shell" id="run-shell">
+  <div class="run-loading" id="run-loading">
+    <div class="spinner"></div>
+    <p>Loading lab run…</p>
+  </div>
+
+  <div class="run-body" id="run-body" hidden>
+    <header class="run-header">
+      <div class="run-header-top">
+        <div>
+          <p class="run-kicker">Lab Run <code id="run-id-short"></code></p>
+          <h1 id="run-instruction">—</h1>
+        </div>
+        <div class="run-header-actions">
+          <button class="btn-primary" id="btn-rerun" onclick="RunPage.rerun()">↻ Re-run</button>
+          <a class="btn" href="/runs/{{ run_id }}/report-view">Report</a>
+          <a class="btn" href="/simulator">3D Lab</a>
+        </div>
+      </div>
+      <div class="run-status-row">
+        <span class="badge" id="run-status-badge">—</span>
+        <span class="badge badge-running" id="current-agent-badge" hidden></span>
+        <span class="llm-badge" id="run-llm-badge">AI</span>
+        <span class="hint" id="run-progress-label"></span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="run-progress"></div></div>
+    </header>
+
+    <div class="confirm-banner" id="confirm-banner" hidden>
+      <div class="flex-1">
+        <strong>Human confirmation required</strong>
+        <p class="hint">Safety agent blocked an action. Confirm to proceed.</p>
+        <input type="text" id="confirm-note" class="mt-8" placeholder="Operator note">
+      </div>
+      <button class="btn-primary" onclick="VialPilot.confirmHuman('{{ run_id }}')">Confirm & Re-run</button>
+    </div>
+
+    <div class="stepper" id="agent-stepper"></div>
+
+    <div class="grid-4 run-stats">
+      <div class="stat-card"><div class="value" id="stat-agents">0</div><div class="label">Agent Calls</div></div>
+      <div class="stat-card"><div class="value" id="stat-llm-calls">0</div><div class="label">Live AI Calls</div></div>
+      <div class="stat-card"><div class="value" id="stat-latency">0</div><div class="label">Total ms</div></div>
+      <div class="stat-card"><div class="value stat-sm" id="stat-llm">—</div><div class="label">AI Model</div></div>
+    </div>
+
+    <div class="run-tabs">
+      <button class="run-tab active" data-tab="overview">Overview</button>
+      <button class="run-tab" data-tab="agents">Agents</button>
+      <button class="run-tab" data-tab="robot">Robot</button>
+      <button class="run-tab" data-tab="timeline">Timeline</button>
+    </div>
+
+    <div class="run-tab-panel active" id="tab-overview">
+      <div class="grid-2">
+        <section class="panel panel-flush">
+          <div class="panel-head"><h2>3D Robot Lab</h2><p class="hint">Live arm synced to commands</p></div>
+          <div class="lab3d-mini run-lab3d" id="run-lab3d"></div>
+        </section>
+        <section class="panel">
+          <h2>Agent Latency</h2>
+          <canvas id="latency-chart" height="220"></canvas>
+        </section>
+      </div>
+      <div class="grid-2">
+        <section class="panel panel-flush vision-run-panel">
+          <div class="vision-run-head">
+            <h2>Vision Input</h2>
+            <div class="vision-run-meta">
+              <span class="vision-source-badge" id="vision-source-badge">—</span>
+              <span class="badge badge-created" id="vision-obj-count" hidden>0 objects</span>
+            </div>
+          </div>
+          <div class="vision-frame" id="vision-frame">
+            <div class="annotated-wrap" id="vision-wrap">
+              <img id="bench-image" src="" alt="Vision input frame" hidden>
+              <canvas id="annotation-canvas"></canvas>
+            </div>
+            <div class="vision-frame-empty" id="vision-empty">Waiting for vision frame…</div>
+          </div>
+          <p class="vision-summary" id="vision-summary">Vision agent will analyze the bench image or simulator camera.</p>
+          <div class="vision-object-chips" id="vision-object-chips"></div>
+        </section>
+        <section class="panel">
+          <h2>Robot Commands</h2>
+          <div id="command-list"></div>
+        </section>
+      </div>
+    </div>
+
+    <div class="run-tab-panel" id="tab-agents">
+      <section class="panel">
+        <h2>Agent Outputs <span class="hint" id="ai-mode-hint"></span></h2>
+        <div id="agent-cards"></div>
+      </section>
+      <section class="panel">
+        <h2>Safety Decisions</h2>
+        <div id="safety-cards"></div>
+      </section>
+    </div>
+
+    <div class="run-tab-panel" id="tab-robot">
+      <section class="panel panel-flush">
+        <div class="panel-head"><h2>Full 3D View</h2></div>
+        <div class="lab3d-mini lab3d-xl" id="run-lab3d-full"></div>
+      </section>
+    </div>
+
+    <div class="run-tab-panel" id="tab-timeline">
+      <section class="panel">
+        <h2>Event Timeline</h2>
+        <div class="timeline" id="event-timeline"></div>
+      </section>
+    </div>
+
+    <p class="error" id="run-error" hidden></p>
+  </div>
+</div>
+{% endblock %}
+{% block extra_scripts %}
+<script src="/static/lab3d.js?v=22"></script>
+<script src="/static/simulator.js?v=22"></script>
+<script src="/static/run_page.js?v=22"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  if (!window.VialPilot) {
+    console.error('VialPilot app.js failed to load');
+    return;
+  }
+  RunPage.init('{{ run_id }}');
+});
+</script>
+{% endblock %}

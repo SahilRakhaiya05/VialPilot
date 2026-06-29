@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}History{% endblock %}
+{% block main_class %}container page-shell{% endblock %}
+{% block content %}
+<header class="page-header">
+  <div>
+    <p class="page-kicker">Audit Trail</p>
+    <h1>Run History</h1>
+    <p class="page-desc">All lab workflows with live AI traces, robot commands, and safety decisions.</p>
+  </div>
+  <div class="page-header-actions">
+    <a href="/dashboard" class="btn-primary">+ New Run</a>
+  </div>
+</header>
+
+<section class="panel panel-elevated">
+  {% if runs %}
+  <div class="run-card-grid">
+    {% for r in runs %}
+    <article class="run-card">
+      <div class="run-card-top">
+        <code>{{ r.run_id[:8] }}…</code>
+        <span class="badge badge-{{ r.status }}">{{ r.status }}</span>
+      </div>
+      <p class="run-card-text">{{ r.instruction[:100] }}{% if r.instruction|length > 100 %}…{% endif %}</p>
+      <p class="hint m-0">{{ r.scene_id }} · {{ r.created_at.strftime('%Y-%m-%d %H:%M') if r.created_at else '' }}</p>
+      <div class="run-card-actions">
+        <a class="btn btn-reset" href="/runs/{{ r.run_id }}">Open</a>
+        <a class="btn btn-reset" href="/runs/{{ r.run_id }}?live=1">Live</a>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="history-empty">
+    <strong>No runs yet</strong>
+    <p class="hint m-0">Start a live AI workflow from the dashboard — add vision input and watch agents drive the robot.</p>
+    <a href="/dashboard" class="btn-primary mt-20">Go to Dashboard</a>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

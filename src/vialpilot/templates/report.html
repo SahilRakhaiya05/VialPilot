@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Report{% endblock %}
+{% block content %}
+<section class="panel report">
+  <div class="actions">
+    <a class="btn" href="/runs/{{ run_id }}">← Back to Run</a>
+    <a class="btn" href="/api/runs/{{ run_id }}/report?format=json">Download JSON</a>
+    <a class="btn" href="/api/runs/{{ run_id }}/report?format=markdown">Download Markdown</a>
+  </div>
+  <pre class="markdown">{{ markdown }}</pre>
+</section>
+{% endblock %}
