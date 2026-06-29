@@ -65,6 +65,11 @@ def create_app() -> FastAPI:
         status = get_session().status()
         return templates.TemplateResponse(request, "simulator.html", {"sim": status})
 
+    @app.get("/demo", response_class=HTMLResponse)
+    @app.get("/demo/", response_class=HTMLResponse)
+    async def demo_page(request: Request):
+        return templates.TemplateResponse(request, "demo_compare.html")
+
     @app.get("/settings", response_class=HTMLResponse)
     async def settings_page(request: Request):
         from src.vialpilot.api.routes import settings

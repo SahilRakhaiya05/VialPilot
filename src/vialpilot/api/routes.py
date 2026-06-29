@@ -40,6 +40,7 @@ from src.vialpilot.integrations.run_to_log import run_to_log_text
 from src.vialpilot.services.executor import execute_async, is_running
 
 from src.vialpilot.services.benchmark import run_speed_benchmark
+from src.vialpilot.services.demo_compare import run_llm_race
 from src.vialpilot.services.workflow import execute_run
 
 router = APIRouter(prefix="/api")
@@ -49,6 +50,12 @@ router = APIRouter(prefix="/api")
 def benchmark_speed(iterations: int = 3):
     """Benchmark Gemma 4 vision latency on Cerebras."""
     return run_speed_benchmark(iterations=iterations)
+
+
+@router.post("/demo/race")
+def demo_llm_race():
+    """Side-by-side speed race: Cerebras Gemma 4 vs simulated GPT-5.2 & Gemini 2.0."""
+    return run_llm_race()
 
 
 @router.get("/models/cerebras")

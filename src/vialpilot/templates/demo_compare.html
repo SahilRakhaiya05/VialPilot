@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Speed Demo — VialPilot{% endblock %}
+{% block main_class %}container page-shell demo-page{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="/static/demo_compare.css?v=1">
+{% endblock %}
+{% block content %}
+
+<header class="demo-hero">
+  <p class="page-kicker">Demo Video Mode</p>
+  <h1>Same vision task · Three LLMs · One winner</h1>
+  <p class="demo-sub">Identical multimodal prompt run in parallel — <strong>Cerebras Gemma 4</strong> vs simulated <strong>OpenAI GPT-5.2</strong> and <strong>Google Gemini 2.0</strong> GPU latencies.</p>
+  <button type="button" class="btn-primary btn-lg" id="btn-race" onclick="DemoRace.start()">▶ Start Speed Race</button>
+  <p class="hint demo-prompt" id="demo-prompt">Prompt: <em>Identify all sample vials, trays, and hazard zones on this lab bench.</em></p>
+</header>
+
+<div class="demo-grid" id="demo-grid">
+  <article class="demo-card demo-cerebras" data-id="cerebras-gemma4">
+    <div class="demo-card-head">
+      <span class="demo-provider-badge live">LIVE</span>
+      <h2>Cerebras Gemma 4</h2>
+      <p class="hint">gemma-4-31b · Wafer-Scale</p>
+    </div>
+    <div class="demo-timer" id="timer-cerebras">—</div>
+    <div class="demo-bar-track"><div class="demo-bar" id="bar-cerebras"></div></div>
+    <p class="demo-status" id="status-cerebras">Ready</p>
+    <p class="demo-summary" id="summary-cerebras"></p>
+  </article>
+
+  <article class="demo-card demo-openai" data-id="openai-gpt52">
+    <div class="demo-card-head">
+      <span class="demo-provider-badge sim">SIM GPU</span>
+      <h2>OpenAI GPT-5.2</h2>
+      <p class="hint">gpt-5.2 · GPU cluster</p>
+    </div>
+    <div class="demo-timer" id="timer-openai">—</div>
+    <div class="demo-bar-track"><div class="demo-bar" id="bar-openai"></div></div>
+    <p class="demo-status" id="status-openai">Ready</p>
+    <p class="demo-summary" id="summary-openai"></p>
+  </article>
+
+  <article class="demo-card demo-gemini" data-id="gemini-20">
+    <div class="demo-card-head">
+      <span class="demo-provider-badge sim">SIM GPU</span>
+      <h2>Google Gemini 2.0</h2>
+      <p class="hint">gemini-2.0-flash · Cloud GPU</p>
+    </div>
+    <div class="demo-timer" id="timer-gemini">—</div>
+    <div class="demo-bar-track"><div class="demo-bar" id="bar-gemini"></div></div>
+    <p class="demo-status" id="status-gemini">Ready</p>
+    <p class="demo-summary" id="summary-gemini"></p>
+  </article>
+</div>
+
+<div class="demo-winner" id="demo-winner" hidden>
+  <h2 id="winner-headline">—</h2>
+  <p class="hint" id="winner-note"></p>
+</div>
+
+<section class="panel demo-tips">
+  <h3>60-second video checklist</h3>
+  <ol>
+    <li>Click <strong>Start Speed Race</strong> — all three columns animate together</li>
+    <li>Point at Gemma 4 finishing first (green card)</li>
+    <li>Cut to <a href="/dashboard">Dashboard</a> workflow → <a href="/simulator">Simulator</a> arm sweep</li>
+    <li>End on winner banner with speedup factor</li>
+  </ol>
+</section>
+
+{% endblock %}
+{% block extra_scripts %}
+<script src="/static/demo_compare.js?v=1"></script>
+{% endblock %}

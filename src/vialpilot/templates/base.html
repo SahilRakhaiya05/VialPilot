@@ -28,6 +28,7 @@
       <a href="/simulator" {% if request.url.path.startswith('/simulator') %}class="active"{% endif %}>Simulator</a>
       <a href="/runs" {% if request.url.path == '/runs' or (request.url.path.startswith('/runs/') and '/report' not in request.url.path) %}class="active"{% endif %}>History</a>
       <a href="/settings" {% if request.url.path == '/settings' %}class="active"{% endif %}>Settings</a>
+      <a href="/demo" {% if request.url.path.startswith('/demo') %}class="active"{% endif %}>Speed Demo</a>
       {% if docs_url %}<a href="{{ docs_url }}" target="_blank" rel="noopener">Docs</a>{% endif %}
       <a href="/simulator" class="nav-cta">Open Lab</a>
     </div>
