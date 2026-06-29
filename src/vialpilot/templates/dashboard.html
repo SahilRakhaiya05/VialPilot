@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block main_class %}container page-shell{% endblock %}
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+{% endblock %}
+{% block content %}
+
+<div class="dash-hero">
+  <div>
+    <p class="page-kicker">Control Center</p>
+    <h1>Autonomous Lab Dashboard</h1>
+    <p class="dash-hero-desc">Start a workflow — AI vision analyzes your bench image or simulator frame, then agents plan and drive the robot.</p>
+  </div>
+  <div class="page-header-actions">
+    <a href="/simulator" class="btn-primary">Open Simulator</a>
+    <a href="/runs" class="btn">History</a>
+  </div>
+</div>
+
+<div class="dash-stat-row">
+  <div class="stat-card-v2"><div class="value" id="stat-provider">—</div><div class="label">AI Provider</div></div>
+  <div class="stat-card-v2"><div class="value" id="stat-runs">—</div><div class="label">Total Runs</div></div>
+  <div class="stat-card-v2"><div class="value">9</div><div class="label">Specialist Agents</div></div>
+  <div class="stat-card-v2"><div class="value">3D</div><div class="label">Robot Lab</div></div>
+</div>
+
+<div class="dash-workspace">
+  <div class="dash-form-col">
+    <section class="panel panel-elevated">
+      <div class="panel-icon-head">
+        <div class="panel-icon">✎</div>
+        <div>
+          <h2>Lab Instruction</h2>
+          <p class="hint">Natural language task for the agent pipeline</p>
+        </div>
+      </div>
+      <form id="new-run-form">
+        <label>Instruction</label>
+        <textarea name="instruction" rows="4" required placeholder="Move the red vial to the safe tray…">Sort all sample blocks into the correct trays without exceeding safety zones.</textarea>
+        <label class="mt-16">Scene</label>
+        <select name="scene_id">
+          {% for sid, scene in scenes.items() %}
+          <option value="{{ sid }}">{{ scene.name }}</option>
+          {% endfor %}
+        </select>
+
+        <label class="mt-16">Vision Input</label>
+        <div class="vision-input" id="dash-vision-input">
+          <div class="vision-input-head">
+            <span class="vision-input-title">Bench Image</span>
+            <span class="vision-source-badge" id="dash-vision-source">No image</span>
+          </div>
+          <div class="vision-input-body">
+            <div class="vision-drop">
+              <input type="file" id="image-input" name="image" accept=".png,.jpg,.jpeg,.webp,image/*">
+              <span class="vision-drop-icon">⬆</span>
+              <span class="vision-drop-text">Drop image or click to browse</span>
+              <span class="vision-drop-hint">PNG, JPG, WEBP — optional</span>
+            </div>
+            <div class="vision-preview-wrap">
+              <img id="dash-vision-preview" alt="Vision preview">
+              <span class="vision-preview-empty">Preview</span>
+            </div>
+          </div>
+          <div class="vision-input-actions">
+            <button type="button" class="vision-btn primary" data-vision-capture>📷 Simulator Capture</button>
+            <button type="button" class="vision-btn" data-vision-clear>Clear</button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary w-full mt-20" id="submit-btn">▶ Start Workflow</button>
+        <p id="status" class="hint mt-14"></p>
+        <div class="progress-track" id="launch-progress" hidden><div class="progress-fill" id="launch-progress-fill"></div></div>
+      </form>
+    </section>
+
+    <div class="dash-pipeline-mini">
+      <span class="dash-pipe-step">VisionLab</span>
+      <span class="dash-pipe-step">Decomposer</span>
+      <span class="dash-pipe-step">Localizer</span>
+      <span class="dash-pipe-step">Safety</span>
+      <span class="dash-pipe-step">Planner</span>
+      <span class="dash-pipe-step">Actor</span>
+      <span class="dash-pipe-step">Reflector</span>
+      <span class="dash-pipe-step">Notebook</span>
+    </div>
+  </div>
+
+  <div class="dash-preview-col">
+    <section class="panel panel-flush panel-elevated">
+      <div class="panel-head">
+        <h2>Live 3D Preview</h2>
+        <p class="hint">Synced robotics bench — use Simulator Capture for vision input</p>
+      </div>
+      <div class="lab3d-mini dash-lab3d" id="home-lab3d"></div>
+      <div class="panel-foot">
+        <a href="/simulator" class="btn btn-reset">Full Simulator →</a>
+        <button type="button" class="btn" onclick="SimLab.viewer&&SimLab.viewer.loadScene()">↻ Refresh</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<section class="panel quick-links">
+  <h2>Quick Links</h2>
+  <div class="quick-link-grid">
+    <a href="/simulator" class="quick-link-card"><strong>3D Simulator</strong><span>Sweep demo & manual lab</span></a>
+    <a href="/runs" class="quick-link-card"><strong>Run History</strong><span>Audit past workflows</span></a>
+    <a href="/settings" class="quick-link-card"><strong>Settings</strong><span>AI providers & models</span></a>
+  </div>
+</section>
+{% endblock %}
+{% block extra_scripts %}
+<script src="/static/lab3d.js?v=22"></script>
+<script src="/static/simulator.js?v=22"></script>
+<script>
+fetch('/api/settings').then(r=>r.json()).then(s=>{
+  const el=document.getElementById('stat-provider');
+  if(s.llm_mode==='real'){
+    el.textContent=s.active_provider==='cerebras-gemma4'?'Cerebras':'Gemini';
+  } else el.textContent='Offline';
+});
+fetch('/api/runs').then(r=>r.json()).then(runs=>{
+  const el=document.getElementById('stat-runs');
+  if(el) el.textContent=runs.length;
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  VialPilot.setupVisionInput('dash-vision-input');
+  fetch('/simulator/init', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ scene_id: 'safe_sorting_scene', force_new: false }),
+  }).then(() => SimLab.mountMini('home-lab3d'));
+});
+
+document.getElementById('new-run-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const status = document.getElementById('status');
+  const btn = document.getElementById('submit-btn');
+  const prog = document.getElementById('launch-progress');
+  const progFill = document.getElementById('launch-progress-fill');
+  btn.disabled = true;
+  prog.hidden = false;
+  progFill.style.width = '10%';
+  status.textContent = 'Creating run…';
+  status.className = 'hint';
+  const form = e.target;
+  const createRes = await fetch('/api/runs', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ instruction: form.instruction.value, scene_id: form.scene_id.value }),
+  });
+  if (!createRes.ok) {
+    let msg = 'Failed to create run.';
+    try { const err = await createRes.json(); msg = err.detail || msg; } catch (_) {}
+    status.textContent = msg;
+    status.className = 'error';
+    btn.disabled = false;
+    prog.hidden = true;
+    return;
+  }
+  const { run_id } = await createRes.json();
+  progFill.style.width = '30%';
+  const image = document.getElementById('image-input').files[0];
+  if (image) {
+    status.textContent = 'Uploading vision input…';
+    const fd = new FormData();
+    fd.append('image', image);
+    const upRes = await fetch(`/api/runs/${run_id}/upload`, { method: 'POST', body: fd });
+    if (!upRes.ok) { status.textContent = 'Vision upload failed.'; status.className = 'error'; btn.disabled = false; return; }
+  }
+  progFill.style.width = '50%';
+  status.textContent = 'Starting live AI agents…';
+  await fetch(`/api/runs/${run_id}/execute`, { method: 'POST' });
+  progFill.style.width = '100%';
+  window.location.href = `/runs/${run_id}?live=1`;
+});
+</script>
+{% endblock %}
