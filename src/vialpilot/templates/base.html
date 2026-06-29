@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="VialPilot — autonomous robotics lab with AI vision, safety agents, and 3D simulator">
+  <title>{% block title %}VialPilot{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css?v=22">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="/static/app.js?v=22"></script>
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-left">
+      <a href="/" class="brand">
+        <span class="brand-mark"></span>
+        VialPilot
+      </a>
+      <span class="brand-sub">Robotics Lab</span>
+      <span class="llm-badge" id="nav-llm-badge">AI</span>
+    </div>
+    <button class="nav-toggle" id="nav-toggle" aria-label="Menu">☰</button>
+    <div class="nav-links" id="nav-links">
+      <a href="/" {% if request.url.path == '/' %}class="active"{% endif %}>Home</a>
+      <a href="/dashboard" {% if request.url.path == '/dashboard' %}class="active"{% endif %}>Dashboard</a>
+      <a href="/simulator" {% if request.url.path.startswith('/simulator') %}class="active"{% endif %}>Simulator</a>
+      <a href="/runs" {% if request.url.path == '/runs' or (request.url.path.startswith('/runs/') and '/report' not in request.url.path) %}class="active"{% endif %}>History</a>
+      <a href="/settings" {% if request.url.path == '/settings' %}class="active"{% endif %}>Settings</a>
+      <a href="/simulator" class="nav-cta">Open Lab</a>
+    </div>
+  </nav>
+  <main class="{% block main_class %}container{% endblock %}">
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div>
+        <strong>VialPilot</strong>
+        <p class="hint">AI vision · Safety agents · 3D robotics lab</p>
+      </div>
+      <div class="footer-links">
+        <a href="/dashboard">Dashboard</a>
+        <a href="/simulator">Simulator</a>
+        <a href="/settings">Settings</a>
+      </div>
+    </div>
+  </footer>
+  {% block extra_scripts %}{% endblock %}
+  <script>
+  document.getElementById('nav-toggle')?.addEventListener('click',()=>{
+    document.getElementById('nav-links')?.classList.toggle('open');
+  });
+  fetch('/api/settings').then(r=>r.json()).then(s=>{
+    const b=document.getElementById('nav-llm-badge');
+    if(!b)return;
+    if(s.llm_mode==='real'){
+      b.textContent='Live';
+      b.classList.add('live');
+    } else {
+      b.textContent='Offline';
+      b.classList.remove('live');
+    }
+  });
+  </script>
+</body>
+</html>
