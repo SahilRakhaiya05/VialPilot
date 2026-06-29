@@ -3,7 +3,8 @@ def test_health(client):
     assert res.status_code == 200
     data = res.json()
     assert data["status"] == "ok"
-    assert data["llm_mode"] == "mock"
+    assert data["llm_mode"] == "real"
+    assert data["llm_provider"] == "cerebras-gemma4"
 
 
 def test_create_run(client):

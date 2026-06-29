@@ -51,12 +51,12 @@ class CerebrasGemmaClient:
     ) -> LLMResult:
         if not self.enabled or self._client is None:
             return LLMResult(
-                mode="mock",
+                mode="unavailable",
                 model=self.model,
-                latency_ms=30.0,
-                raw_text=str(fallback_json),
-                result_json=fallback_json,
-                error=None,
+                latency_ms=0.0,
+                raw_text="",
+                result_json={},
+                error="CEREBRAS_API_KEY not configured",
             )
 
         messages: List[Dict[str, Any]] = [
@@ -122,11 +122,11 @@ class CerebrasGemmaClient:
                 break
 
         return LLMResult(
-            mode="mock",
+            mode="unavailable",
             model=self.model,
             latency_ms=0.0,
             raw_text="",
-            result_json=fallback_json,
+            result_json={},
             error=last_error or "Cerebras Gemma 4 API unavailable",
         )
 

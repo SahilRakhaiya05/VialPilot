@@ -120,7 +120,7 @@ def to_run_detail(run: RunRecord) -> RunDetail:
             confidence=o.get("confidence", 0.0),
             data=o.get("data", {}),
             latency_ms=o.get("latency_ms", 0.0),
-            mode=o.get("mode", "mock"),
+            mode=o.get("mode", "unavailable"),
         )
         for o in (run.agent_outputs or [])
     ]

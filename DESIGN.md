@@ -16,7 +16,7 @@ The system is built to showcase how **Gemma 4 31B on Cerebras** enables real-tim
 | Multimodal intelligence | Image + video frames + post-action simulator vision in one Gemma 4 call |
 | Speed in action | Per-agent `latency_ms`, workflow `speed_summary`, live benchmark API |
 | Physical AI | Commands drive a WebGL robot arm; state syncs between Python backend and browser |
-| Demo reliability | Offline mock mode when no API key; SQLite persistence for replay |
+| Reliability | SQLite persistence for replay; clear errors when API key missing |
 
 ---
 
@@ -53,8 +53,7 @@ flowchart TB
 
     subgraph LLM["LLM Layer"]
         CB["Cerebras Gemma 4"]
-        GM[Gemini fallback]
-        MK[Mock offline]
+        ERR[unavailable]
     end
 
     subgraph ROBOT["Robotics Engine"]
@@ -77,8 +76,7 @@ flowchart TB
     R -.->|retry_needed| MP
     EXEC --> NB
     V & TD & L & S & MP & R --> CB
-    CB -->|fail| GM
-    GM -->|fail| MK
+    CB -->|fail| ERR
     A --> BR --> SR
     BR --> LB
     SR --> SIMR
@@ -104,7 +102,7 @@ flowchart TB
 | 7 | Reflector | `agents/reflector_agent.py` | Yes | Post-action visual verification; triggers replan |
 | 8 | Lab Notebook | `agents/lab_notebook_agent.py` | No | Audit summary — verified actions, blocks, replans |
 
-All LLM agents call `run_json()` in `llm/client.py`, which returns structured JSON plus `latency_ms` and `mode` (`real` | `mock`).
+All LLM agents call `run_json()` in `llm/client.py`, which returns structured JSON plus `latency_ms` and `mode` (`real` | `unavailable`).
 
 ### Subtask execution loop
 
@@ -175,30 +173,26 @@ Output schema: `objects[]`, `zones[]`, `hazards[]`, `uncertainties[]`, `visual_s
 
 ---
 
-## 5. LLM provider chain
+## 5. LLM — Cerebras Gemma 4 only
 
 **File:** `src/vialpilot/llm/client.py`
 
 ```mermaid
 flowchart LR
-    A[Agent calls run_json] --> B{Cerebras key?}
+    A[Agent calls run_json] --> B{CEREBRAS_API_KEY?}
     B -->|yes| C[CerebrasGemmaClient]
     C -->|success| Z[Return JSON + latency_ms]
-    C -->|fail| D{Gemini key?}
-    B -->|no| D
-    D -->|yes| E[GeminiClient]
-    E -->|success| Z
-    E -->|fail| F[Mock fallback_json 30ms]
-    D -->|no| F
+    C -->|fail| E[unavailable + error]
+    B -->|no| E
 ```
 
 | Provider | Module | Model | Multimodal |
 |----------|--------|-------|------------|
-| Cerebras (primary) | `llm/cerebras_gemma.py` | `gemma-4-31b` (auto-discovered) | Base64 `image_url` in chat |
-| Gemini (fallback) | `llm/gemini_client.py` | `gemini-2.5-flash` | `Part.from_bytes()` |
-| Mock (offline) | `llm/client.py` | — | Returns agent `fallback_json` |
+| Cerebras Gemma 4 | `llm/cerebras_gemma.py` | `gemma-4-31b` (auto-discovered) | Base64 `image_url` in chat |
 
 Model resolution: `CEREBRAS_MODEL=auto` → `cerebras_models.resolve_gemma4_model()` queries the public catalog.
+
+No Gemini or offline mock — `CEREBRAS_API_KEY` is required for live operation.
 
 ---
 
@@ -270,7 +264,7 @@ Timeline events: `workflow_started`, `agent_started`, `agent_completed`, `replan
 
 ### Per-call latency
 
-Every `run_json()` call records `latency_ms`. Each agent output stores `mode` (`real` | `mock`).
+Every `run_json()` call records `latency_ms`. Each agent output stores `mode` (`real` | `unavailable`).
 
 ### Workflow metrics (`_metrics()`)
 

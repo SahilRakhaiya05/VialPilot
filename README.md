@@ -191,11 +191,10 @@ Source files: `src/vialpilot/agents/`
 ## LLM stack
 
 ```
-Agent call
-  → Cerebras Gemma 4 31B  (primary, multimodal, JSON mode)
-      → Gemini 2.5 Flash   (fallback)
-          → Mock offline    (tests, no API key)
+Agent call → Cerebras Gemma 4 31B (multimodal, JSON mode)
 ```
+
+Requires `CEREBRAS_API_KEY` — no fallback providers.
 
 - **Provider detection:** `GET /api/health` and nav badge (`Live` / `Offline`)
 - **Model auto-discovery:** `CEREBRAS_MODEL=auto` resolves `gemma-4-31b` from the Cerebras catalog
@@ -273,7 +272,7 @@ Copy `.env.example` → `.env`:
 |----------|---------|-------------|
 | `CEREBRAS_API_KEY` | — | **Required for live demo** |
 | `CEREBRAS_MODEL` | `auto` | `auto` discovers Gemma 4 31B |
-| `GEMINI_API_KEY` | — | Fallback provider |
+
 | `PORT` | `7860` | Web server port |
 | `MAX_VIDEO_FRAMES` | `8` | Frames extracted from MP4 |
 | `MAX_VISION_FRAMES` | `4` | Frames per Gemma 4 vision call |
@@ -292,7 +291,7 @@ DESIGN.md                       # Architecture & system design
 src/vialpilot/
   api/                          # FastAPI routes + Jinja2 UI
   agents/                       # 9 specialist agents
-  llm/                          # Cerebras Gemma 4 + Gemini + images
+  llm/                          # Cerebras Gemma 4 + images
   services/                     # Workflow, benchmark, reports, uploads
   simulator/                    # SoftwareRobotBackend + LabBench
   static/                       # lab3d.js, simulator.js, app.js, CSS
@@ -312,7 +311,7 @@ pytest
 
 | Suite | Covers |
 |-------|--------|
-| `test_workflow.py` | Full mock agent pipeline |
+| `test_workflow.py` | Full agent pipeline |
 | `test_benchmark.py` | Speed benchmark API |
 | `test_workflow_metrics.py` | Speed summary metrics |
 | `test_upload.py` | Image upload path |
@@ -334,7 +333,7 @@ docker run -p 7860:7860 --env-file .env vialpilot
 
 | Problem | Solution |
 |---------|----------|
-| Nav shows **Offline** | Add `CEREBRAS_API_KEY` to `.env`, restart server |
+| Nav shows **Offline** | Add `CEREBRAS_API_KEY` to `.env`, restart server (required) |
 | Port 7860 in use | Kill old `python app.py` or set `PORT=7861` |
 | Stale UI | Hard refresh: **Ctrl+Shift+R** (cache v=29) |
 | Benchmark 404 | Restart server after `git pull` |
@@ -348,7 +347,7 @@ docker run -p 7860:7860 --env-file .env vialpilot
 | Layer | Technology |
 |-------|------------|
 | Backend | Python 3.9+, FastAPI, SQLAlchemy, SQLite |
-| LLM | Cerebras API (Gemma 4 31B), Google Gemini fallback |
+| LLM | Cerebras API (Gemma 4 31B) |
 | Vision | Pillow, OpenCV (video frame extraction) |
 | Frontend | Jinja2, vanilla JS, Chart.js |
 | 3D Lab | Three.js WebGL (`lab3d.js`) |

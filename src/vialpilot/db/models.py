@@ -58,5 +58,5 @@ class AgentOutputRecord(Base):
     confidence = Column(Float, default=0.0)
     data = Column(JSON, default=dict)
     latency_ms = Column(Float, default=0.0)
-    mode = Column(String(16), default="mock")
+    mode = Column(String(16), default="unavailable")
     created_at = Column(DateTime, default=_utcnow)

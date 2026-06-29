@@ -1,4 +1,4 @@
-def test_mock_agent_workflow(client):
+def test_agent_workflow(client):
     create = client.post("/api/runs", json={
         "instruction": "Move the red sample vial to the safe tray",
         "scene_id": "safe_sorting_scene",

@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 
 AgentStatus = Literal["success", "warning", "blocked", "failed"]
 RunStatus = Literal["created", "uploaded", "running", "completed", "failed", "blocked"]
-LLMMode = Literal["real", "mock"]
+LLMMode = Literal["real", "unavailable"]
 
 
 class AgentOutput(BaseModel):
@@ -19,7 +19,7 @@ class AgentOutput(BaseModel):
     confidence: float = 0.0
     data: Dict[str, Any] = Field(default_factory=dict)
     latency_ms: float = 0.0
-    mode: LLMMode = "mock"
+    mode: LLMMode = "unavailable"
 
 
 class LLMResult(BaseModel):
@@ -112,7 +112,6 @@ class SettingsResponse(BaseModel):
     hardware_mode: str
     providers: List[Dict[str, Any]] = Field(default_factory=list)
     cerebras_model: str = ""
-    gemini_model: str = ""
 
 
 class ConfirmRequest(BaseModel):

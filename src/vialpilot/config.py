@@ -19,9 +19,6 @@ CEREBRAS_BASE_URL = os.getenv("CEREBRAS_BASE_URL", "https://api.cerebras.ai/v1")
 # Cerebras Gemma 4 — use "auto" to discover from API, or explicit id e.g. gemma-4-31b
 CEREBRAS_MODEL = os.getenv("CEREBRAS_MODEL", "auto")
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
-
 APP_MODE = os.getenv("APP_MODE", "development")
 ENABLE_PIPELINE_ANALYZER = os.getenv("ENABLE_PIPELINE_ANALYZER", "true").lower() in ("1", "true", "yes")
 DASH_PORT = int(os.getenv("DASH_PORT", "8050"))

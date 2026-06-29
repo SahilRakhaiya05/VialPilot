@@ -6,7 +6,7 @@
   <div>
     <p class="page-kicker">Configuration</p>
     <h1>Settings</h1>
-    <p class="page-desc">AI providers, models, and lab configuration.</p>
+    <p class="page-desc">Cerebras Gemma 4 and lab configuration.</p>
   </div>
 </header>
 
@@ -15,8 +15,7 @@
   <div class="provider-card {% if p.enabled and settings.active_provider == p.id %}active{% endif %}">
     <h3><span class="status-dot {% if p.enabled %}on{% else %}off{% endif %}"></span>{{ p.name }}</h3>
     <p class="hint">Model: <code>{{ p.model }}</code></p>
-    <p class="hint">Priority {{ p.priority }}</p>
-    <p class="hint">{% if p.enabled %}Ready for live inference{% else %}Add API key to <code>.env</code>{% endif %}</p>
+    <p class="hint">{% if p.enabled %}Live Gemma 4 inference{% else %}Add <code>CEREBRAS_API_KEY</code> to <code>.env</code>{% endif %}</p>
   </div>
   {% endfor %}
 </div>
@@ -26,27 +25,23 @@
   <table class="data-table">
     <tr><td>Provider</td><td><code id="active-provider">{{ settings.active_provider }}</code></td></tr>
     <tr><td>Mode</td><td><span class="badge badge-{% if settings.llm_mode == 'real' %}success{% else %}running{% endif %}">{{ settings.llm_mode }}</span></td></tr>
-    <tr><td>Primary model</td><td><code id="gemma4-model">{{ settings.cerebras_model }}</code></td></tr>
-    <tr><td>Fallback model</td><td><code>{{ settings.gemini_model }}</code></td></tr>
+    <tr><td>Gemma 4 model</td><td><code id="gemma4-model">{{ settings.cerebras_model }}</code></td></tr>
     <tr><td>Hardware</td><td><code>{{ settings.hardware_mode }}</code></td></tr>
     <tr><td>Simulator</td><td>3D WebGL Robotics Lab</td></tr>
   </table>
 </section>
 
-{% if settings.llm_mode == 'mock' %}
+{% if settings.llm_mode != 'real' %}
 <section class="panel panel-elevated panel-spaced panel-warn">
-  <h2>Enable Live AI</h2>
-  <p class="hint">Add an API key to <code>.env</code> and restart the server:</p>
-  <ol class="hint hint-list">
-    <li><code>CEREBRAS_API_KEY=...</code> — primary provider</li>
-    <li><code>GEMINI_API_KEY=...</code> — fallback provider</li>
-  </ol>
+  <h2>Configure Cerebras API Key</h2>
+  <p class="hint">Add your key to <code>.env</code> and restart the server:</p>
+  <pre class="hint" style="margin-top:12px"><code>CEREBRAS_API_KEY=your_key_here</code></pre>
   <a href="/dashboard" class="btn-primary mt-16">Go to Dashboard</a>
 </section>
 {% else %}
 <section class="panel panel-elevated panel-spaced panel-ok">
-  <h2>Live AI Active</h2>
-  <p class="hint">Provider <code>{{ settings.active_provider }}</code> — all agents use real inference.</p>
+  <h2>Gemma 4 Live on Cerebras</h2>
+  <p class="hint">All agents use <code>{{ settings.cerebras_model }}</code> for inference.</p>
   <div class="speed-benchmark-row">
     <button type="button" class="btn-primary" id="btn-settings-bench">⚡ Speed Benchmark</button>
     <p class="hint speed-benchmark-result" id="settings-bench-result" hidden></p>
@@ -54,21 +49,11 @@
   <a href="/dashboard" class="btn mt-16">Start Workflow</a>
 </section>
 {% endif %}
-
-<section class="panel panel-elevated panel-spaced">
-  <h2>Cerebras Speed Demo</h2>
-  <p class="hint">Run 3× Gemma 4 vision calls to measure avg/min/max latency — works in mock mode without an API key.</p>
-  <div class="speed-benchmark-row">
-    <button type="button" class="btn" id="btn-settings-bench-offline">⚡ Run Benchmark</button>
-    <p class="hint speed-benchmark-result" id="settings-bench-offline-result" hidden></p>
-  </div>
-</section>
 <script>
 fetch('/api/models/cerebras').then(r=>r.json()).then(m=>{
   const el=document.getElementById('gemma4-model');
   if(el) el.textContent=m.resolved_model + (m.api_key_configured?' (live)':' (add key)');
 });
 document.getElementById('btn-settings-bench')?.addEventListener('click', () => VialPilot.runSpeedBenchmark('settings-bench-result'));
-document.getElementById('btn-settings-bench-offline')?.addEventListener('click', () => VialPilot.runSpeedBenchmark('settings-bench-offline-result'));
 </script>
 {% endblock %}

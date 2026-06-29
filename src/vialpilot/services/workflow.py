@@ -345,7 +345,7 @@ def _metrics(
     real_calls = len(real_outputs)
     real_latency = sum(o.get("latency_ms", 0) for o in real_outputs)
     provider = get_active_provider()
-    model = get_active_model() if provider != "mock" else "mock-local"
+    model = get_active_model()
     wall_ms = round((time.perf_counter() - loop_started) * 1000, 2) if loop_started else total
     avg_llm = round(real_latency / real_calls, 2) if real_calls else 0.0
 
@@ -354,10 +354,10 @@ def _metrics(
             f"{len(agent_outputs)} agents · {wall_ms / 1000:.1f}s wall · "
             f"{real_calls} Gemma 4 calls avg {avg_llm:.0f}ms on Cerebras"
         )
-    elif provider == "gemini":
-        speed_summary = f"{len(agent_outputs)} agents · {wall_ms / 1000:.1f}s wall · Gemini fallback"
+    elif not real_calls:
+        speed_summary = f"{len(agent_outputs)} agents · configure CEREBRAS_API_KEY for Gemma 4"
     else:
-        speed_summary = f"{len(agent_outputs)} agents · offline mock mode"
+        speed_summary = f"{len(agent_outputs)} agents · {wall_ms / 1000:.1f}s wall"
 
     return {
         "agent_calls": len(agent_outputs),

@@ -126,7 +126,7 @@
 fetch('/api/settings').then(r=>r.json()).then(s=>{
   const el=document.getElementById('stat-provider');
   if(s.llm_mode==='real'){
-    el.textContent=s.active_provider==='cerebras-gemma4'?'Cerebras':'Gemini';
+    el.textContent=s.llm_mode==='real'?'Cerebras Gemma 4':'Not configured';
   } else el.textContent='Offline';
 });
 fetch('/api/runs').then(r=>r.json()).then(runs=>{

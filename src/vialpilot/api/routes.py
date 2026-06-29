@@ -13,10 +13,10 @@ from src.vialpilot.agents.reflector_agent import reflector_agent
 from src.vialpilot.agents.safety_veto_agent import safety_veto_agent
 from src.vialpilot.agents.task_decomposer_agent import task_decomposer_agent
 from src.vialpilot.agents.vision_lab_agent import vision_lab_agent
-from src.vialpilot.config import APP_MODE, CEREBRAS_MODEL, GEMINI_MODEL, HARDWARE_MODE
+from src.vialpilot.config import APP_MODE, CEREBRAS_MODEL, HARDWARE_MODE
 from src.vialpilot.db import repository as repo
 from src.vialpilot.db.database import get_db_session
-from src.vialpilot.llm.client import get_active_model, get_active_provider, get_provider_status
+from src.vialpilot.llm.client import get_active_model, get_active_provider, get_provider_status, llm_available
 from src.vialpilot.models.schemas import (
     ConfirmRequest,
     AgentDecomposeRequest,
@@ -75,7 +75,7 @@ def health() -> HealthResponse:
         status="ok",
         app_mode=APP_MODE,
         llm_provider=provider,
-        llm_mode="real" if provider != "mock" else "mock",
+        llm_mode="real" if llm_available() else "unavailable",
         database="connected",
         hardware_mode=HARDWARE_MODE,
         model=model,
@@ -88,11 +88,10 @@ def settings() -> SettingsResponse:
     return SettingsResponse(
         app_mode=APP_MODE,
         active_provider=provider,
-        llm_mode="real" if provider != "mock" else "mock",
+        llm_mode="real" if llm_available() else "unavailable",
         hardware_mode=HARDWARE_MODE,
         providers=get_provider_status(),
-        cerebras_model=get_active_model() if "cerebras" in get_active_provider() else CEREBRAS_MODEL,
-        gemini_model=GEMINI_MODEL,
+        cerebras_model=get_active_model() if llm_available() else CEREBRAS_MODEL,
     )
 
 

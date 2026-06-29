@@ -18,10 +18,11 @@ function mediaUrl(path) {
 
 function llmLabel(metrics) {
   if (!metrics) return 'Offline';
-  const p = metrics.llm_provider || 'mock';
+  const p = metrics.llm_provider || '';
   const m = metrics.model || '';
-  if (p.includes('cerebras')) return m ? `Cerebras · ${m}` : 'Cerebras';
-  if (p === 'gemini') return m ? `Gemini · ${m}` : 'Gemini';
+  if (p.includes('cerebras') && (metrics.real_llm_calls || 0) > 0) {
+    return m ? `Cerebras · ${m}` : 'Cerebras';
+  }
   return 'Offline';
 }
 

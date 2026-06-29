@@ -109,7 +109,7 @@ const RunPage = {
     }
     const hint = document.getElementById('ai-mode-hint');
     if (hint) {
-      hint.textContent = real ? '— live AI inference' : (m.llm_provider === 'mock' ? '— add API key in Settings' : '— starting…');
+      hint.textContent = real ? '— live Gemma 4 on Cerebras' : '— add CEREBRAS_API_KEY in Settings';
     }
 
     const progress = vp().runProgress(run);

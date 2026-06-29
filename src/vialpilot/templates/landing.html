@@ -156,7 +156,7 @@ fetch('/api/settings').then(r=>r.json()).then(s=>{
   const prov=document.getElementById('lp-provider');
   if(s.llm_mode==='real'){
     if(tag){ tag.textContent='Live'; tag.classList.add('lp-badge-live'); }
-    if(prov) prov.textContent=s.active_provider==='cerebras-gemma4'?'Cerebras':'Gemini';
+    if(prov) prov.textContent=s.llm_mode==='real'?'Cerebras Gemma 4':'Not configured';
   } else {
     if(tag) tag.textContent='Offline';
     if(prov) prov.textContent='Offline';
