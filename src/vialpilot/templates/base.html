@@ -5,16 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="VialPilot — autonomous robotics lab with AI vision, safety agents, and 3D simulator">
   <title>{% block title %}VialPilot{% endblock %}</title>
-  <link rel="stylesheet" href="/static/style.css?v=28">
+  <link rel="icon" href="/static/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/style.css?v=29">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="/static/app.js?v=28"></script>
+  <script src="/static/app.js?v=29"></script>
   {% block head %}{% endblock %}
 </head>
 <body>
   <nav class="nav">
     <div class="nav-left">
       <a href="/" class="brand">
-        <span class="brand-mark"></span>
+        <img src="/static/logo.svg" alt="" class="brand-logo" width="28" height="28">
         VialPilot
       </a>
       <span class="brand-sub">Robotics Lab</span>
@@ -27,6 +28,7 @@
       <a href="/simulator" {% if request.url.path.startswith('/simulator') %}class="active"{% endif %}>Simulator</a>
       <a href="/runs" {% if request.url.path == '/runs' or (request.url.path.startswith('/runs/') and '/report' not in request.url.path) %}class="active"{% endif %}>History</a>
       <a href="/settings" {% if request.url.path == '/settings' %}class="active"{% endif %}>Settings</a>
+      {% if docs_url %}<a href="{{ docs_url }}" target="_blank" rel="noopener">Docs</a>{% endif %}
       <a href="/simulator" class="nav-cta">Open Lab</a>
     </div>
   </nav>
@@ -43,6 +45,8 @@
         <a href="/dashboard">Dashboard</a>
         <a href="/simulator">Simulator</a>
         <a href="/settings">Settings</a>
+        {% if docs_url %}<a href="{{ docs_url }}" target="_blank" rel="noopener">Documentation</a>{% endif %}
+        {% if github_url %}<a href="{{ github_url }}" target="_blank" rel="noopener">GitHub</a>{% endif %}
       </div>
     </div>
   </footer>

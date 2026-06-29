@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VialPilot Swarm — Docs</title>
+  <meta name="description" content="Documentation for VialPilot Swarm — Gemma 4 on Cerebras autonomous robotics lab">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="site-nav">
+    <a class="nav-brand" href="/">
+      <img src="/assets/logo.svg" alt="" width="36" height="36">
+      VialPilot
+    </a>
+    <button class="nav-toggle" id="nav-toggle" aria-label="Menu">☰</button>
+    <div class="nav-links" id="nav-links">
+      <a href="/" data-nav>Home</a>
+      <a href="/getting-started" data-nav>Get Started</a>
+      <a href="/architecture" data-nav>Architecture</a>
+      <a href="/api" data-nav>API</a>
+      <a href="https://github.com/SahilRakhaiya05/VialPilot" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/SahilRakhaiya05/VialPilot" class="nav-cta" target="_blank" rel="noopener">View Repo</a>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <img class="hero-logo" src="/assets/logo.svg" alt="VialPilot logo" width="80" height="80">
+    <div class="hero-kicker">Cerebras × Google Gemma 4 Hackathon</div>
+    <h1>VialPilot Swarm</h1>
+    <p>Autonomous lab-bench controller powered by <strong>Gemma 4 31B on Cerebras</strong> — multimodal vision, nine collaborating agents, 3D robot execution, and closed-loop verify + replan.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="/getting-started">Get Started →</a>
+      <a class="btn" href="/architecture">Architecture</a>
+      <a class="btn" href="https://github.com/SahilRakhaiya05/VialPilot" target="_blank" rel="noopener">GitHub</a>
+    </div>
+    <div class="badges">
+      <span class="badge badge-teal">9 Agents</span>
+      <span class="badge badge-blue">Gemma 4 31B</span>
+      <span class="badge badge-teal">Multimodal</span>
+      <span class="badge badge-blue">3D Robot Lab</span>
+      <span class="badge">24 Tests</span>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="section">
+      <h2>What it does</h2>
+      <p>VialPilot runs a full <strong>observe → reason → act → verify → replan</strong> loop for laboratory automation. Upload a bench image or MP4 video, describe your task, and watch specialist agents plan safe robot moves in a browser-based 3D lab.</p>
+      <div class="flow">
+        <span>Vision</span><span class="arrow">→</span>
+        <span>Decompose</span><span class="arrow">→</span>
+        <span>Localize</span><span class="arrow">→</span>
+        <span>Safety</span><span class="arrow">→</span>
+        <span>Plan</span><span class="arrow">→</span>
+        <span>Act</span><span class="arrow">→</span>
+        <span>Verify</span><span class="arrow">→</span>
+        <span>Report</span>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Hackathon pillars</h2>
+      <div class="grid-4">
+        <div class="card">
+          <div class="icon">🤝</div>
+          <h3>Agent Collaboration</h3>
+          <p>9 specialist agents with Reflector-triggered one-shot replan and full event timeline.</p>
+        </div>
+        <div class="card">
+          <div class="icon">👁️</div>
+          <h3>Multimodal</h3>
+          <p>Text + image + MP4 video (up to 4 frames) + post-action simulator vision.</p>
+        </div>
+        <div class="card">
+          <div class="icon">⚡</div>
+          <h3>Speed in Action</h3>
+          <p>Per-agent latency, Speed in Action panel, live Gemma 4 benchmark API.</p>
+        </div>
+        <div class="card">
+          <div class="icon">🦾</div>
+          <h3>Physical AI</h3>
+          <p>WebGL 3D robot arm, hazard zones, human-in-the-loop, hardware bridge.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Documentation</h2>
+      <div class="grid-3">
+        <a class="card" href="/getting-started" style="text-decoration:none;color:inherit">
+          <h3>Getting Started →</h3>
+          <p>Install, configure Cerebras API key, run the app, and follow the 60-second demo.</p>
+        </a>
+        <a class="card" href="/architecture" style="text-decoration:none;color:inherit">
+          <h3>Architecture →</h3>
+          <p>Agent pipeline, replan loop, multimodal vision, LLM stack, and 3D simulator.</p>
+        </a>
+        <a class="card" href="/api" style="text-decoration:none;color:inherit">
+          <h3>API Reference →</h3>
+          <p>Workflow endpoints, simulator routes, speed benchmark, and agent debug APIs.</p>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div>
+        <strong>VialPilot Swarm</strong>
+        <p>Cerebras × Google DeepMind Gemma 4 Hackathon · Multiverse Agents</p>
+      </div>
+      <div class="footer-links">
+        <a href="/getting-started">Docs</a>
+        <a href="https://github.com/SahilRakhaiya05/VialPilot" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/SahilRakhaiya05/VialPilot/releases/tag/cerebras-gemma4-hackathon-2026" target="_blank" rel="noopener">Release</a>
+      </div>
+    </div>
+  </footer>
+  <script src="/js/main.js"></script>
+</body>
+</html>

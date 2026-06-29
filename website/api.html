@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>API Reference — VialPilot Docs</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="site-nav">
+    <a class="nav-brand" href="/"><img src="/assets/logo.svg" alt="" width="36" height="36"> VialPilot</a>
+    <button class="nav-toggle" id="nav-toggle" aria-label="Menu">☰</button>
+    <div class="nav-links" id="nav-links">
+      <a href="/" data-nav>Home</a>
+      <a href="/getting-started" data-nav>Get Started</a>
+      <a href="/architecture" data-nav>Architecture</a>
+      <a href="/api" data-nav>API</a>
+      <a href="https://github.com/SahilRakhaiya05/VialPilot" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </nav>
+
+  <header class="page-hero">
+    <h1>API Reference</h1>
+    <p>REST endpoints for workflows, simulator control, speed benchmark, and individual agents.</p>
+  </header>
+
+  <main class="container">
+    <section class="section">
+      <h2>Health & settings</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>GET</td><td><code>/api/health</code></td><td>Server status, LLM provider, model</td></tr>
+            <tr><td>GET</td><td><code>/api/settings</code></td><td>Active provider configuration</td></tr>
+            <tr><td>GET</td><td><code>/api/models/cerebras</code></td><td>Gemma 4 model info</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Workflow</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>POST</td><td><code>/api/runs</code></td><td>Create run — body: <code>instruction</code>, <code>scene_id</code></td></tr>
+            <tr><td>GET</td><td><code>/api/runs</code></td><td>List all runs</td></tr>
+            <tr><td>GET</td><td><code>/api/runs/{id}</code></td><td>Run detail + agent outputs</td></tr>
+            <tr><td>POST</td><td><code>/api/runs/{id}/upload</code></td><td>Upload image and/or MP4 (multipart)</td></tr>
+            <tr><td>POST</td><td><code>/api/runs/{id}/execute</code></td><td>Start agent pipeline</td></tr>
+            <tr><td>POST</td><td><code>/api/runs/{id}/confirm</code></td><td>Human-in-the-loop safety override</td></tr>
+            <tr><td>POST</td><td><code>/api/runs/{id}/rerun</code></td><td>Re-run workflow</td></tr>
+            <tr><td>GET</td><td><code>/api/runs/{id}/events</code></td><td>Live event timeline</td></tr>
+            <tr><td>GET</td><td><code>/api/runs/{id}/report</code></td><td>Report — <code>?format=markdown</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Speed benchmark</h2>
+      <pre><code>POST /api/benchmark/speed?iterations=3</code></pre>
+      <p>Runs repeated Vision Lab calls. Returns <code>avg_ms</code>, <code>min_ms</code>, <code>max_ms</code>, <code>headline</code>.</p>
+      <pre><code>{
+  "provider": "cerebras-gemma4",
+  "model": "gemma-4-31b",
+  "avg_ms": 847.5,
+  "headline": "Gemma 4 on Cerebras: 848ms avg vision call"
+}</code></pre>
+    </section>
+
+    <section class="section">
+      <h2>Simulator</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>GET</td><td><code>/simulator/status</code></td><td>Session status</td></tr>
+            <tr><td>GET</td><td><code>/simulator/scene</code></td><td>Robot + bench JSON state</td></tr>
+            <tr><td>GET</td><td><code>/simulator/frame.png</code></td><td>Rendered camera frame</td></tr>
+            <tr><td>POST</td><td><code>/simulator/init</code></td><td>Reset scene</td></tr>
+            <tr><td>POST</td><td><code>/simulator/step</code></td><td>Apply robot command</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Individual agents (debug)</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Method</th><th>Endpoint</th></tr></thead>
+          <tbody>
+            <tr><td>POST</td><td><code>/api/agent/vision</code></td></tr>
+            <tr><td>POST</td><td><code>/api/agent/decompose</code></td></tr>
+            <tr><td>POST</td><td><code>/api/agent/safety</code></td></tr>
+            <tr><td>POST</td><td><code>/api/agent/plan</code></td></tr>
+            <tr><td>POST</td><td><code>/api/agent/reflect</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Example: full workflow</h2>
+      <pre><code># 1. Create run
+curl -X POST http://127.0.0.1:7860/api/runs \
+  -H "Content-Type: application/json" \
+  -d '{"instruction":"Move red vial to safe tray","scene_id":"safe_sorting_scene"}'
+
+# 2. Upload image
+curl -X POST http://127.0.0.1:7860/api/runs/{id}/upload \
+  -F "image=@bench.png"
+
+# 3. Execute
+curl -X POST http://127.0.0.1:7860/api/runs/{id}/execute
+
+# 4. Poll status
+curl http://127.0.0.1:7860/api/runs/{id}</code></pre>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div><strong>VialPilot Swarm</strong><p>Base URL: http://127.0.0.1:7860</p></div>
+      <div class="footer-links">
+        <a href="/getting-started">Get Started</a>
+        <a href="/architecture">Architecture</a>
+        <a href="https://github.com/SahilRakhaiya05/VialPilot" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </div>
+  </footer>
+  <script src="/js/main.js"></script>
+</body>
+</html>

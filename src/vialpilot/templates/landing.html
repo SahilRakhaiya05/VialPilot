@@ -23,6 +23,7 @@
       <div class="lp-actions">
         <a href="/dashboard" class="btn-primary btn-lg">Start Workflow</a>
         <a href="/simulator" class="btn btn-lg btn-ghost">Open Simulator</a>
+        {% if docs_url %}<a href="{{ docs_url }}" class="btn btn-lg btn-ghost" target="_blank" rel="noopener">Documentation</a>{% endif %}
       </div>
       <div class="lp-metrics">
         <div class="lp-metric"><strong id="lp-provider">—</strong><span>AI Provider</span></div>
@@ -147,8 +148,8 @@
 
 {% endblock %}
 {% block extra_scripts %}
-<script src="/static/lab3d.js?v=28"></script>
-<script src="/static/simulator.js?v=28"></script>
+<script src="/static/lab3d.js?v=29"></script>
+<script src="/static/simulator.js?v=29"></script>
 <script>
 fetch('/api/settings').then(r=>r.json()).then(s=>{
   const tag=document.getElementById('landing-ai-tag');

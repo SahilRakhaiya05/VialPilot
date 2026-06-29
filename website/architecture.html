@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Architecture — VialPilot Docs</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="site-nav">
+    <a class="nav-brand" href="/"><img src="/assets/logo.svg" alt="" width="36" height="36"> VialPilot</a>
+    <button class="nav-toggle" id="nav-toggle" aria-label="Menu">☰</button>
+    <div class="nav-links" id="nav-links">
+      <a href="/" data-nav>Home</a>
+      <a href="/getting-started" data-nav>Get Started</a>
+      <a href="/architecture" data-nav>Architecture</a>
+      <a href="/api" data-nav>API</a>
+      <a href="https://github.com/SahilRakhaiya05/VialPilot" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </nav>
+
+  <header class="page-hero">
+    <h1>Architecture</h1>
+    <p>How VialPilot's nine agents, multimodal vision, replan loop, and 3D simulator work together.</p>
+  </header>
+
+  <main class="container">
+    <section class="section">
+      <h2>System overview</h2>
+      <p>FastAPI backend orchestrates nine specialist agents. Gemma 4 on Cerebras handles all LLM calls. Commands flow to a Python robot state machine, synced to a Three.js WebGL arm in the browser.</p>
+      <pre><code>Dashboard / Simulator UI
+    ↓ FastAPI (/api, /simulator)
+Workflow Orchestrator (execute_run)
+    ↓ 9 Agents
+Cerebras Gemma 4 → Gemini fallback → Mock
+    ↓
+SoftwareRobotBackend ↔ lab3d.js (Three.js)</code></pre>
+    </section>
+
+    <section class="section">
+      <h2>Agent pipeline</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Agent</th><th>LLM</th><th>Role</th></tr></thead>
+          <tbody>
+            <tr><td>Orchestrator</td><td>—</td><td>Workflow execution, status, events</td></tr>
+            <tr><td>Vision Lab</td><td>✓</td><td>Multimodal scene analysis (multi-frame video)</td></tr>
+            <tr><td>Task Decomposer</td><td>✓</td><td>Natural language → ordered subtasks</td></tr>
+            <tr><td>Localizer</td><td>✓</td><td>Vision objects → simulator coordinates</td></tr>
+            <tr><td>Safety Veto</td><td>✓</td><td>Per-subtask hazard gate</td></tr>
+            <tr><td>Motion Planner</td><td>✓</td><td>Subtask → robot command</td></tr>
+            <tr><td>Actor Command</td><td>—</td><td>Execute in simulator / MQTT / webhook</td></tr>
+            <tr><td>Reflector</td><td>✓</td><td>Post-action visual verification + replan trigger</td></tr>
+            <tr><td>Lab Notebook</td><td>—</td><td>Audit trail and final report</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Replan loop</h2>
+      <p>Each subtask runs <strong>plan → act → reflect</strong>. If Reflector returns <code>retry_needed: true</code>, Motion Planner re-runs with a hint — maximum one replan per subtask.</p>
+      <pre><code>Safety allow → Motion Planner → Actor Command
+    → Simulator moves arm → Post-action PNG
+    → Reflector (Gemma 4 + image)
+    → if retry_needed: replan_started → Planner(hint) → Actor → Reflector
+    → replan_completed → continue</code></pre>
+    </section>
+
+    <section class="section">
+      <h2>Multimodal vision</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Input</th><th>Processing</th><th>Frames to LLM</th></tr></thead>
+          <tbody>
+            <tr><td>PNG / JPG / WEBP</td><td>Stored in upload_paths</td><td>1</td></tr>
+            <tr><td>MP4 video</td><td>OpenCV extracts up to 8 frames</td><td>Up to 4 (MAX_VISION_FRAMES)</td></tr>
+            <tr><td>Simulator camera</td><td>observation_for_vision()</td><td>1</td></tr>
+            <tr><td>Post-action verify</td><td>get_frame_png() after each move</td><td>1 to Reflector</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>LLM provider chain</h2>
+      <pre><code>run_json() per agent call
+  1. Cerebras Gemma 4 31B (multimodal, JSON mode)
+  2. Gemini 2.5 Flash (fallback)
+  3. Mock offline (tests, no API key)</code></pre>
+      <p>Every call records <code>latency_ms</code> and <code>mode</code> (real / mock) for the Speed in Action panel.</p>
+    </section>
+
+    <section class="section">
+      <h2>3D simulator</h2>
+      <ul>
+        <li><strong>Backend:</strong> <code>SoftwareRobotBackend</code> — deterministic state machine, no PyBullet required on Windows</li>
+        <li><strong>API:</strong> <code>GET /simulator/scene</code>, <code>POST /simulator/step</code></li>
+        <li><strong>Frontend:</strong> <code>lab3d.js</code> — Three.js IK, joint interpolation, arc sweep pick/place</li>
+        <li><strong>Sync:</strong> Browser polls scene JSON; arm animates via <code>animateSweepPick/Place</code></li>
+      </ul>
+    </section>
+
+    <section class="section">
+      <h2>Data model</h2>
+      <p>SQLite via SQLAlchemy. Key tables: <code>runs</code> (instruction, agent_outputs, commands, latency_metrics, bench_state) and <code>run_events</code> (timeline: replan_started, agent_completed, etc.).</p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div><strong>VialPilot Swarm</strong><p>Full design: DESIGN.md in repo</p></div>
+      <div class="footer-links">
+        <a href="/getting-started">Get Started</a>
+        <a href="/api">API</a>
+        <a href="https://github.com/SahilRakhaiya05/VialPilot/blob/main/DESIGN.md" target="_blank" rel="noopener">DESIGN.md</a>
+      </div>
+    </div>
+  </footer>
+  <script src="/js/main.js"></script>
+</body>
+</html>

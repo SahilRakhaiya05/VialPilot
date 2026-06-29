@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Getting Started — VialPilot Docs</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="site-nav">
+    <a class="nav-brand" href="/"><img src="/assets/logo.svg" alt="" width="36" height="36"> VialPilot</a>
+    <button class="nav-toggle" id="nav-toggle" aria-label="Menu">☰</button>
+    <div class="nav-links" id="nav-links">
+      <a href="/" data-nav>Home</a>
+      <a href="/getting-started" data-nav>Get Started</a>
+      <a href="/architecture" data-nav>Architecture</a>
+      <a href="/api" data-nav>API</a>
+      <a href="https://github.com/SahilRakhaiya05/VialPilot" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </nav>
+
+  <header class="page-hero">
+    <h1>Getting Started</h1>
+    <p>Install VialPilot, connect Cerebras, and run your first autonomous lab workflow in under five minutes.</p>
+  </header>
+
+  <main class="container">
+    <section class="section">
+      <h2>Prerequisites</h2>
+      <ul>
+        <li>Python 3.9 or newer</li>
+        <li><a href="https://inference.cerebras.ai/" target="_blank" rel="noopener">Cerebras API key</a> for live Gemma 4 demo</li>
+        <li>Git (optional)</li>
+      </ul>
+    </section>
+
+    <section class="section">
+      <h2>Install</h2>
+      <pre><code>git clone https://github.com/SahilRakhaiya05/VialPilot.git
+cd VialPilot
+python -m venv .venv
+
+# Windows
+.venv\Scripts\activate
+
+# macOS / Linux
+source .venv/bin/activate
+
+pip install -r requirements.txt
+cp .env.example .env</code></pre>
+    </section>
+
+    <section class="section">
+      <h2>Configure</h2>
+      <p>Edit <code>.env</code> and add your Cerebras key:</p>
+      <pre><code>CEREBRAS_API_KEY=your_key_here
+CEREBRAS_MODEL=auto
+PORT=7860</code></pre>
+      <p>Without a key, the app runs in <strong>offline mock mode</strong> (tests only — not for live demo).</p>
+    </section>
+
+    <section class="section">
+      <h2>Run</h2>
+      <pre><code>python app.py</code></pre>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>URL</th><th>Page</th></tr></thead>
+          <tbody>
+            <tr><td><code>http://127.0.0.1:7860/dashboard</code></td><td>Start workflows</td></tr>
+            <tr><td><code>http://127.0.0.1:7860/simulator</code></td><td>3D Robot Lab</td></tr>
+            <tr><td><code>http://127.0.0.1:7860/runs</code></td><td>Run history</td></tr>
+            <tr><td><code>http://127.0.0.1:7860/settings</code></td><td>AI config + benchmark</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>60-second demo</h2>
+      <ol style="color:var(--muted);padding-left:20px">
+        <li style="margin-bottom:10px">Open <strong>Dashboard</strong> → select Hazard Avoidance scene</li>
+        <li style="margin-bottom:10px">Upload a <strong>PNG/JPG</strong> or <strong>MP4 video</strong> (or Simulator Capture)</li>
+        <li style="margin-bottom:10px">Instruction: <em>"Move the red sample vial to the safe tray and avoid the contaminated zone."</em></li>
+        <li style="margin-bottom:10px">Click <strong>▶ Start Workflow</strong> → watch agent stepper + Speed in Action panel</li>
+        <li style="margin-bottom:10px">Open <strong>Simulator</strong> → arm sweep animation</li>
+        <li>Click <strong>⚡ Speed Benchmark</strong> → show live Gemma 4 latency</li>
+      </ol>
+    </section>
+
+    <section class="section">
+      <h2>Deploy docs on Vercel</h2>
+      <p>This documentation site deploys from the <code>website/</code> folder:</p>
+      <pre><code># Install Vercel CLI
+npm i -g vercel
+
+# From repo root
+vercel</code></pre>
+      <p>Or connect your GitHub repo in the <a href="https://vercel.com" target="_blank" rel="noopener">Vercel dashboard</a> — <code>vercel.json</code> is already configured.</p>
+    </section>
+
+    <section class="section">
+      <h2>Tests</h2>
+      <pre><code>pytest</code></pre>
+      <p>24 tests cover workflow, uploads, benchmark, safety, and HTML routes.</p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div><strong>VialPilot Swarm</strong><p>Cerebras × Gemma 4 Hackathon</p></div>
+      <div class="footer-links">
+        <a href="/architecture">Architecture</a>
+        <a href="/api">API</a>
+        <a href="https://github.com/SahilRakhaiya05/VialPilot" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </div>
+  </footer>
+  <script src="/js/main.js"></script>
+</body>
+</html>

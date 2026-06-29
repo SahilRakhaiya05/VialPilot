@@ -367,4 +367,28 @@ An original closed-loop embodied agent demo showcasing how ultra-fast multimodal
 
 **Repository:** [github.com/SahilRakhaiya05/VialPilot](https://github.com/SahilRakhaiya05/VialPilot)
 
+**Documentation site:** [vialpilot-swarm.vercel.app](https://vialpilot-swarm.vercel.app) (deploy from `website/`)
+
 **Release tag:** `cerebras-gemma4-hackathon-2026`
+
+---
+
+## Documentation website (Vercel)
+
+A static docs site lives in `website/` — ready for Vercel:
+
+```bash
+npm i -g vercel
+vercel
+```
+
+Or connect the GitHub repo in the [Vercel dashboard](https://vercel.com) — `vercel.json` points to `website/`.
+
+| Page | URL |
+|------|-----|
+| Home | `/` |
+| Getting Started | `/getting-started` |
+| Architecture | `/architecture` |
+| API Reference | `/api` |
+
+Set `DOCS_SITE_URL` in `.env` to your Vercel URL so the app nav links to your deployed docs.

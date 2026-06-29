@@ -11,7 +11,7 @@ from fastapi.templating import Jinja2Templates
 
 from src.vialpilot.api.routes import router as api_router
 from src.vialpilot.api.simulator_routes import router as simulator_router
-from src.vialpilot.config import UPLOAD_DIR
+from src.vialpilot.config import DOCS_SITE_URL, GITHUB_REPO_URL, UPLOAD_DIR
 from src.vialpilot.db.database import init_db
 from src.vialpilot.simulator.scenes import SCENES
 
@@ -30,6 +30,8 @@ def create_app() -> FastAPI:
 
     templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
     templates.env.filters["tojson"] = lambda v, indent=0: json.dumps(v, indent=indent, default=str, ensure_ascii=False)
+    templates.env.globals["docs_url"] = DOCS_SITE_URL
+    templates.env.globals["github_url"] = GITHUB_REPO_URL
 
     @app.get("/media")
     async def serve_media(path: str):

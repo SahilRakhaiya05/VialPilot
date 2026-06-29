@@ -41,3 +41,6 @@ ALLOWED_IMAGE_EXT = {".png", ".jpg", ".jpeg", ".webp"}
 ALLOWED_VIDEO_EXT = {".mp4"}
 MAX_VIDEO_FRAMES = int(os.getenv("MAX_VIDEO_FRAMES", "8"))
 MAX_VISION_FRAMES = int(os.getenv("MAX_VISION_FRAMES", "4"))
+
+DOCS_SITE_URL = os.getenv("DOCS_SITE_URL", "https://vialpilot-swarm.vercel.app").strip()
+GITHUB_REPO_URL = os.getenv("GITHUB_REPO_URL", "https://github.com/SahilRakhaiya05/VialPilot").strip()
