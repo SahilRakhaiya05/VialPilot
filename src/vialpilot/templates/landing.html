@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% block title %}VialPilot{% endblock %}
+{% block main_class %}landing-main{% endblock %}
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+{% endblock %}
+{% block content %}
+
+<section class="lp-hero">
+  <div class="lp-hero-bg"></div>
+  <div class="lp-hero-inner">
+    <div class="lp-hero-text">
+      <div class="lp-badge-row">
+        <span class="lp-badge" id="landing-ai-tag">Live AI</span>
+        <span class="lp-badge lp-badge-muted">Vision</span>
+        <span class="lp-badge lp-badge-muted">3D Lab</span>
+      </div>
+      <h1>Autonomous lab control with <span class="lp-gradient">real AI vision</span></h1>
+      <p class="lp-sub">
+        Upload a bench photo or capture the simulator. Nine specialist agents analyze the scene,
+        plan safe motions, and drive the 3D robot arm.
+      </p>
+      <div class="lp-actions">
+        <a href="/dashboard" class="btn-primary btn-lg">Start Workflow</a>
+        <a href="/simulator" class="btn btn-lg btn-ghost">Open Simulator</a>
+      </div>
+      <div class="lp-metrics">
+        <div class="lp-metric"><strong id="lp-provider">—</strong><span>AI Provider</span></div>
+        <div class="lp-metric"><strong>9</strong><span>Agents</span></div>
+        <div class="lp-metric"><strong>3D</strong><span>Robot Lab</span></div>
+        <div class="lp-metric"><strong>Live</strong><span>Audit Trail</span></div>
+      </div>
+    </div>
+
+    <div class="lp-preview">
+      <div class="lab-banner lab-banner-hero">
+        <p class="lab-banner-text">
+          Sweep all
+          <span class="lab-glyph red-solid"></span>
+          <span class="lab-glyph blue-solid"></span>
+          <span class="lab-glyph green-solid"></span>
+          into <span class="lab-glyph pink-outline"></span>
+          without exceeding <span class="lab-glyph yellow-bar"></span>.
+        </p>
+      </div>
+      <div class="lp-preview-canvas lab3d-mini landing-lab3d" id="landing-lab3d"></div>
+      <div class="lp-preview-caption">3D Robotics Lab · synced with agent commands</div>
+    </div>
+  </div>
+</section>
+
+<section class="lp-vision">
+  <div class="lp-vision-inner">
+    <div class="lp-vision-copy">
+      <p class="lp-overline" style="text-align:left">Vision Input</p>
+      <h2>See what the AI sees</h2>
+      <p>Every workflow starts with vision — upload a bench image or capture a live simulator frame. The vision agent annotates objects, zones, and hazards before any robot motion.</p>
+      <ul class="lp-vision-list">
+        <li>Drag & drop PNG/JPG or use Simulator Capture</li>
+        <li>Bounding boxes on the run dashboard</li>
+        <li>Falls back to simulator camera when no upload</li>
+        <li>Full trace in history & reports</li>
+      </ul>
+      <a href="/dashboard" class="btn-primary">Try Vision Input →</a>
+    </div>
+    <div class="lp-vision-demo">
+      <div class="lp-vision-demo-head">
+        <span>Vision Agent</span>
+        <span class="vision-source-badge live" id="lp-vision-badge">Simulator</span>
+      </div>
+      <div class="lp-vision-demo-frame">
+        <img id="lp-vision-frame" src="/simulator/frame.png" alt="Vision frame">
+      </div>
+      <div class="lp-vision-demo-chips" id="lp-vision-chips">
+        <span class="vision-obj-chip ok">red_block</span>
+        <span class="vision-obj-chip ok">blue_block</span>
+        <span class="vision-obj-chip ok">green_block</span>
+        <span class="vision-obj-chip warn">hazard_zone</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="lp-section">
+  <p class="lp-overline">Platform</p>
+  <h2 class="lp-h2">Built for autonomous lab workflows</h2>
+  <div class="lp-features">
+    <article class="lp-feature">
+      <div class="lp-feature-icon lp-icon-vision"></div>
+      <h3><span class="lp-feature-num">01</span> AI Vision</h3>
+      <p>Multimodal inference on simulator frames or uploaded bench images.</p>
+    </article>
+    <article class="lp-feature">
+      <div class="lp-feature-icon lp-icon-safety"></div>
+      <h3><span class="lp-feature-num">02</span> Safety Veto</h3>
+      <p>Every motion is checked. Blocked actions pause for human confirmation.</p>
+    </article>
+    <article class="lp-feature">
+      <div class="lp-feature-icon lp-icon-robot"></div>
+      <h3><span class="lp-feature-num">03</span> 3D Robotics Lab</h3>
+      <p>Precision bench, gantry arm, smooth sweep pick and place.</p>
+    </article>
+    <article class="lp-feature">
+      <div class="lp-feature-icon lp-icon-dash"></div>
+      <h3><span class="lp-feature-num">04</span> Run Dashboard</h3>
+      <p>Agent cards, latency charts, vision annotations, and reports.</p>
+    </article>
+  </div>
+</section>
+
+<section class="lp-section lp-section-alt">
+  <p class="lp-overline">Workflow</p>
+  <h2 class="lp-h2">Instruction to verified placement</h2>
+  <div class="lp-steps">
+    <div class="lp-step"><span class="lp-step-n">01</span><h4>Instruction</h4><p>Describe the lab task on the dashboard.</p></div>
+    <div class="lp-step"><span class="lp-step-n">02</span><h4>Vision</h4><p>Upload or capture — AI detects blocks and hazards.</p></div>
+    <div class="lp-step"><span class="lp-step-n">03</span><h4>Plan & Safety</h4><p>Agents decompose, localize, and veto unsafe moves.</p></div>
+    <div class="lp-step"><span class="lp-step-n">04</span><h4>Robot</h4><p>Arm sweeps, picks, and places in the 3D lab.</p></div>
+  </div>
+</section>
+
+<section class="lp-section">
+  <p class="lp-overline">Pipeline</p>
+  <h2 class="lp-h2">Nine agents, one run</h2>
+  <div class="lp-pipeline">
+    <span class="lp-pill">Vision</span><span class="lp-pipe">→</span>
+    <span class="lp-pill">Decomposer</span><span class="lp-pipe">→</span>
+    <span class="lp-pill">Localizer</span><span class="lp-pipe">→</span>
+    <span class="lp-pill">Safety</span><span class="lp-pipe">→</span>
+    <span class="lp-pill">Planner</span><span class="lp-pipe">→</span>
+    <span class="lp-pill">Actor</span><span class="lp-pipe">→</span>
+    <span class="lp-pill">Reflector</span><span class="lp-pipe">→</span>
+    <span class="lp-pill">Notebook</span>
+  </div>
+</section>
+
+<section class="lp-cta">
+  <div class="lp-cta-card">
+    <h2>Run your first workflow</h2>
+    <p>Add vision input on the dashboard and watch agents drive the robot in real time.</p>
+    <div class="lp-actions lp-actions-center">
+      <a href="/dashboard" class="btn-primary btn-lg">Dashboard</a>
+      <a href="/simulator" class="btn btn-lg">Simulator</a>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+{% block extra_scripts %}
+<script src="/static/lab3d.js?v=22"></script>
+<script src="/static/simulator.js?v=22"></script>
+<script>
+fetch('/api/settings').then(r=>r.json()).then(s=>{
+  const tag=document.getElementById('landing-ai-tag');
+  const prov=document.getElementById('lp-provider');
+  if(s.llm_mode==='real'){
+    if(tag){ tag.textContent='Live'; tag.classList.add('lp-badge-live'); }
+    if(prov) prov.textContent=s.active_provider==='cerebras-gemma4'?'Cerebras':'Gemini';
+  } else {
+    if(tag) tag.textContent='Offline';
+    if(prov) prov.textContent='Offline';
+  }
+});
+document.addEventListener('DOMContentLoaded',()=>{
+  fetch('/simulator/init',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({scene_id:'safe_sorting_scene',force_new:false})})
+    .then(()=>{ if(window.SimLab) SimLab.mountMini('landing-lab3d'); });
+  const frame=document.getElementById('lp-vision-frame');
+  if(frame) frame.src='/simulator/frame.png?t='+Date.now();
+});
+</script>
+{% endblock %}
