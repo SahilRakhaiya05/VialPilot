@@ -1,4 +1,0 @@
-# Deprecated — use requirements.txt for core install.
-# Optional PyBullet physics (Linux/Docker only):
-#   pip install pybullet>=3.2.5
--r requirements.txt
