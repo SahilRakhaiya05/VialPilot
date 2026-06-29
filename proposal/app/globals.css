@@ -1,0 +1,55 @@
+@import 'tailwindcss';
+
+@theme inline {
+  --color-background: #0f1419;
+  --color-foreground: #fafbfb;
+  --color-primary: #2563eb;
+  --color-accent: #3b82f6;
+  --color-neutral: #374151;
+  --radius: 0.5rem;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold;
+  }
+
+  a {
+    @apply transition-colors;
+  }
+}
+
+@layer components {
+  .container-max {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-lg bg-primary hover:bg-accent text-background font-semibold transition-colors;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-lg border border-neutral hover:bg-neutral/10 text-foreground font-semibold transition-colors;
+  }
+
+  .glass {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl;
+  }
+
+  .section-title {
+    @apply text-3xl sm:text-4xl md:text-5xl font-bold text-balance;
+  }
+
+  .section-subtitle {
+    @apply text-lg sm:text-xl text-neutral max-w-2xl;
+  }
+}
