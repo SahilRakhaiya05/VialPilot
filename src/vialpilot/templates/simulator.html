@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Simulator{% endblock %}
+{% block main_class %}lab-main{% endblock %}
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/examples/js/controls/OrbitControls.js"></script>
+{% endblock %}
+{% block content %}
+<div class="lab-shell lab-shell-pro">
+  <div class="lab-banner lab-banner-sim">
+    <div class="lab-pipeline" id="sim-pipeline">
+      <span class="lab-pipe-step active" data-phase="idle">Idle</span>
+      <span class="lab-pipe-arrow">›</span>
+      <span class="lab-pipe-step" data-phase="approach">Approach</span>
+      <span class="lab-pipe-arrow">›</span>
+      <span class="lab-pipe-step" data-phase="grip">Grip</span>
+      <span class="lab-pipe-arrow">›</span>
+      <span class="lab-pipe-step" data-phase="sweep">Sweep</span>
+      <span class="lab-pipe-arrow">›</span>
+      <span class="lab-pipe-step" data-phase="place">Place</span>
+      <span class="lab-pipe-arrow">›</span>
+      <span class="lab-pipe-step" data-phase="home">Home</span>
+    </div>
+    <p class="lab-banner-text" id="lab-task-compose">
+      Sweep all
+      <span class="lab-glyph red-solid"></span>
+      <span class="lab-glyph blue-solid"></span>
+      <span class="lab-glyph green-solid"></span>
+      into <span class="lab-glyph pink-outline"></span>
+      without exceeding <span class="lab-glyph yellow-bar"></span>.
+      <span class="lab-banner-detail" id="lab-task-text">correct trays only</span>
+    </p>
+  </div>
+
+  <div class="lab-body">
+    <div class="lab-stage">
+      <div class="lab-viewport" id="lab3d-root"></div>
+      <div class="lab-hud">
+        <span class="lab-hud-chip" id="sim-mode-chip">{{ sim.session_mode or sim.mode }}</span>
+        <span class="lab-hud-chip accent" id="sim-ai-chip">Live AI</span>
+        <span class="lab-hud-chip">Steps <strong id="step-count">{{ sim.step_count or 0 }}</strong></span>
+      </div>
+      <p class="lab-status" id="sim-action-status">Ready · drag to orbit · scroll to zoom</p>
+    </div>
+
+    <aside class="lab-panel">
+      <div class="lab-panel-card">
+        <h3>Robot Status</h3>
+        <div class="lab-stat-row"><span>Gripper</span><strong id="sim-gripper" class="lab-gripper-open">Open</strong></div>
+        <div class="lab-stat-row"><span>Holding</span><strong id="sim-holding">—</strong></div>
+        <div class="lab-stat-row"><span>Phase</span><strong id="sim-phase">Idle</strong></div>
+      </div>
+
+      <div class="lab-panel-card">
+        <h3>Motion Speed</h3>
+        <input type="range" class="lab-speed" id="sim-speed" min="0.3" max="1.2" step="0.05" value="0.45">
+      </div>
+
+      <div class="lab-panel-card">
+        <h3>Manual Control</h3>
+        <div class="lab-pick-grid">
+          <button class="lab-pick-btn red" onclick="SimLab.pick('red_vial')">Pick Red</button>
+          <button class="lab-pick-btn blue" onclick="SimLab.pick('blue_vial')">Pick Blue</button>
+          <button class="lab-pick-btn green" onclick="SimLab.pick('green_vial')">Pick Green</button>
+          <button class="lab-pick-btn" onclick="SimLab.place('safe_tray')">→ Safe</button>
+          <button class="lab-pick-btn" onclick="SimLab.place('cold_tray')">→ Cold</button>
+          <button class="lab-pick-btn" onclick="SimLab.place('waste_tray')">→ Waste</button>
+        </div>
+      </div>
+
+      <div class="lab-panel-card">
+        <h3>Camera</h3>
+        <div class="lab-cam-row">
+          <button class="lab-cam-btn" onclick="SimLab.setCamera('iso')">Iso</button>
+          <button class="lab-cam-btn" onclick="SimLab.setCamera('top')">Top</button>
+          <button class="lab-cam-btn" onclick="SimLab.setCamera('side')">Side</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="lab-toolbar">
+    <select id="scene-select" class="lab-select" title="Scene">
+      <option value="safe_sorting_scene">Safe Sorting</option>
+      <option value="hazard_avoidance_scene">Hazard Avoidance</option>
+      <option value="uncertainty_scene">Uncertainty</option>
+    </select>
+    <button class="lab-btn primary" onclick="SimLab.init()">Initialize</button>
+    <button class="lab-btn accent" onclick="SimLab.demo()">▶ Sweep Demo</button>
+    <button class="lab-btn" onclick="SimLab.resetCamera()">Reset View</button>
+    <a href="/dashboard" class="lab-btn ghost">Dashboard →</a>
+    <span class="lab-meta" id="sim-model-cell">offline</span>
+  </div>
+</div>
+{% endblock %}
+{% block extra_scripts %}
+<script src="/static/lab3d.js?v=22"></script>
+<script src="/static/simulator.js?v=22"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  SimLab.mount('lab3d-root');
+  SimLab.init();
+  document.getElementById('sim-speed')?.addEventListener('input', e => SimLab.setSpeed(parseFloat(e.target.value)));
+  fetch('/api/health').then(r => r.json()).then(h => {
+    const cell = document.getElementById('sim-model-cell');
+    const ai = document.getElementById('sim-ai-chip');
+    if (h.llm_mode === 'real') {
+      if (cell && h.model) cell.textContent = h.model;
+      if (ai) ai.textContent = 'Live';
+    } else {
+      if (cell) cell.textContent = 'offline';
+      if (ai) ai.textContent = 'Offline';
+    }
+  });
+});
+</script>
+{% endblock %}
