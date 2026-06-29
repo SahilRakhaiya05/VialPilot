@@ -1,7 +1,5 @@
 # VialPilot Swarm — System Design
 
-**Cerebras × Google DeepMind Gemma 4 Hackathon** · Multiverse Agents Track
-
 ---
 
 ## 1. Overview
@@ -336,7 +334,7 @@ See `.env.example`. Critical variables:
 
 | Variable | Default | Notes |
 |----------|---------|-------|
-| `CEREBRAS_API_KEY` | — | Required for live hackathon demo |
+| `CEREBRAS_API_KEY` | — | Required for live inference |
 | `CEREBRAS_MODEL` | `auto` | Resolves to `gemma-4-31b` |
 | `MAX_VIDEO_FRAMES` | `8` | Extracted from MP4 |
 | `MAX_VISION_FRAMES` | `4` | Sent per LLM vision call |
@@ -357,15 +355,3 @@ Docker: `docker build -t vialpilot .` — single `requirements.txt`, production 
 
 Tests: `pytest` — 24 tests covering workflow, upload, benchmark, safety, HTML routes.
 
----
-
-## 12. Hackathon alignment
-
-| Criterion | VialPilot evidence |
-|-----------|-------------------|
-| Agent collaboration | 9 agents, explicit replan loop, event timeline |
-| Multimodal | Text + image + MP4 + post-action vision |
-| Speed in action | Latency on every call, Speed panel, benchmark button |
-| Physical AI | 3D robot lab, hazard zones, closed verify loop |
-
-**Tag:** `cerebras-gemma4-hackathon-2026`

@@ -1,4 +1,4 @@
-"""Cerebras / Gemma 4 speed benchmark for hackathon demos."""
+"""Cerebras / Gemma 4 speed benchmark for live demos."""
 from __future__ import annotations
 
 import statistics

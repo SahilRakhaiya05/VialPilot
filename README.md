@@ -1,10 +1,7 @@
 # VialPilot Swarm
 
-### Cerebras × Google DeepMind Gemma 4 Hackathon · Multiverse Agents Track
+**Autonomous robotics lab** powered by Gemma 4 on Cerebras — multimodal vision, nine collaborating agents, 3D robot execution, visual verification, and one-shot replan.
 
-**Gemma 4 31B on Cerebras** powers a real-time autonomous lab-bench swarm — multimodal vision, nine collaborating agents, 3D robot execution, visual verification, and one-shot replan.
-
-[![Hackathon](https://img.shields.io/badge/Hackathon-Cerebras%20%C3%97%20Gemma%204-14b8a6?style=flat-square)](https://www.cerebras.ai/)
 [![Agents](https://img.shields.io/badge/Agents-9%20specialists-3b82f6?style=flat-square)](#agent-pipeline)
 [![LLM](https://img.shields.io/badge/LLM-Gemma%204%2031B-8b5cf6?style=flat-square)](#llm-stack)
 [![Tests](https://img.shields.io/badge/Tests-24%20passing-22c55e?style=flat-square)](#testing)
@@ -32,14 +29,14 @@ This is physical AI — not a chatbot. Commands move a robot arm in a browser-ba
 
 ---
 
-## Hackathon criteria
+## Core capabilities
 
-| Pillar | Score | Implementation |
-|--------|-------|----------------|
-| **Agent collaboration** | 10/10 | 9 specialist agents with Reflector-triggered **one-shot replan** and full event timeline |
-| **Multimodal intelligence** | 10/10 | Text + image + **MP4 video** (up to 4 frames/call) + **post-action simulator vision** |
-| **Speed in action** | 10/10 | Per-agent `latency_ms`, **Speed in Action** panel, live **⚡ Speed Benchmark** API |
-| **Physical AI innovation** | 10/10 | WebGL 3D robot lab, hazard zones, human-in-the-loop, MQTT/webhook hardware bridge |
+| Capability | Details |
+|------------|---------|
+| **Multi-agent pipeline** | 9 specialist agents with Reflector-triggered **one-shot replan** and full event timeline |
+| **Multimodal vision** | Text + image + **MP4 video** (up to 4 frames/call) + **post-action simulator vision** |
+| **Speed metrics** | Per-agent `latency_ms`, **Speed in Action** panel, live **⚡ Speed Benchmark** API |
+| **3D robotics lab** | WebGL robot arm, hazard zones, human-in-the-loop, MQTT/webhook hardware bridge |
 
 ---
 
@@ -339,7 +336,7 @@ docker run -p 7860:7860 --env-file .env vialpilot
 |---------|----------|
 | Nav shows **Offline** | Add `CEREBRAS_API_KEY` to `.env`, restart server |
 | Port 7860 in use | Kill old `python app.py` or set `PORT=7861` |
-| Stale UI | Hard refresh: **Ctrl+Shift+R** (cache v=28) |
+| Stale UI | Hard refresh: **Ctrl+Shift+R** (cache v=29) |
 | Benchmark 404 | Restart server after `git pull` |
 | Video upload fails | `pip install opencv-python-headless` |
 | Arm not sweeping | Open `/simulator`, click Sweep Demo |
@@ -359,17 +356,11 @@ docker run -p 7860:7860 --env-file .env vialpilot
 
 ---
 
-## Attribution
-
-**VialPilot Swarm** — built for the **Cerebras × Google DeepMind Gemma 4 Hackathon** (Multiverse Agents track).
-
-An original closed-loop embodied agent demo showcasing how ultra-fast multimodal inference on Cerebras changes physical AI workflows.
+## Links
 
 **Repository:** [github.com/SahilRakhaiya05/VialPilot](https://github.com/SahilRakhaiya05/VialPilot)
 
 **Documentation site:** [vialpilot-swarm.vercel.app](https://vialpilot-swarm.vercel.app) (deploy from `website/`)
-
-**Release tag:** `cerebras-gemma4-hackathon-2026`
 
 ---
 

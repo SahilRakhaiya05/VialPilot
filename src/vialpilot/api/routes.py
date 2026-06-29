@@ -47,7 +47,7 @@ router = APIRouter(prefix="/api")
 
 @router.post("/benchmark/speed")
 def benchmark_speed(iterations: int = 3):
-    """Benchmark Gemma 4 vision latency on Cerebras (hackathon speed demo)."""
+    """Benchmark Gemma 4 vision latency on Cerebras."""
     return run_speed_benchmark(iterations=iterations)
 
 
