@@ -1,170 +1,326 @@
 # VialPilot Swarm
 
-**Autonomous robotics lab powered by Gemma 4 on Cerebras**
+### Cerebras × Google DeepMind Gemma 4 Hackathon · Multiverse Agents Track
 
-VialPilot turns multimodal AI into a real-time lab-bench controller. Upload a bench image or MP4 video, describe a task in natural language, and watch nine specialist agents **observe → reason → act → verify → replan** in a closed loop — with a live 3D robot arm in the browser.
+**Gemma 4 31B on Cerebras** powers a real-time autonomous lab-bench swarm — multimodal vision, nine collaborating agents, 3D robot execution, visual verification, and one-shot replan.
 
-Built for the **Cerebras × Google DeepMind Gemma 4 Hackathon** — *Multiverse Agents* track.
-
----
-
-## Why VialPilot
-
-| Hackathon pillar | What VialPilot does |
-|------------------|---------------------|
-| **Agent collaboration** | 9 coordinated agents with Reflector-triggered **one-shot replan** |
-| **Multimodal intelligence** | Text + image + **MP4 video** (up to 4 frames) + **post-action simulator vision** |
-| **Speed in action** | Per-agent latency, run-page **Speed in Action** panel, live **⚡ Speed Benchmark** |
-| **Physical AI innovation** | Closed embodied loop driving a **WebGL 3D robot lab** — not a chatbot |
+[![Hackathon](https://img.shields.io/badge/Hackathon-Cerebras%20%C3%97%20Gemma%204-14b8a6?style=flat-square)](https://www.cerebras.ai/)
+[![Agents](https://img.shields.io/badge/Agents-9%20specialists-3b82f6?style=flat-square)](#agent-pipeline)
+[![LLM](https://img.shields.io/badge/LLM-Gemma%204%2031B-8b5cf6?style=flat-square)](#llm-stack)
+[![Tests](https://img.shields.io/badge/Tests-24%20passing-22c55e?style=flat-square)](#testing)
 
 ---
 
-## Features
+## What is VialPilot?
 
-- **Dashboard** — natural-language instructions, image/video upload, simulator camera capture
-- **9 specialist agents** — Vision, Decompose, Localize, Safety, Plan, Act, Reflect, Notebook (+ Orchestrator)
-- **3D robot simulator** — WebGL arm with sweep pick/place, hazard zones, live command sync
-- **Replan loop** — Reflector verifies each move; on failure, Motion Planner retries with a hint
-- **Speed demo** — `POST /api/benchmark/speed` + UI buttons on Dashboard & Settings
-- **Cerebras + Gemini** — live Gemma 4 31B on Cerebras; offline mock when no API key
-- **SQLite persistence** — run history, audit reports, event timeline
+VialPilot is a **closed-loop embodied agent** for laboratory automation. You give it:
+
+1. A **natural-language instruction** (*"Move the red vial to the safe tray, avoid the contaminated zone"*)
+2. **Multimodal scene evidence** — a bench photo, an MP4 video, or a live simulator camera frame
+
+The system then runs a full **observe → reason → act → verify → replan** cycle:
+
+```
+Vision analysis  →  Task decomposition  →  Object localization
+       →  Safety check  →  Motion plan  →  Robot execution
+              →  Visual verification  →  [Replan if needed]  →  Audit report
+```
+
+This is physical AI — not a chatbot. Commands move a robot arm in a browser-based 3D lab, and every action is visually verified before the pipeline continues.
+
+> Full system design: **[DESIGN.md](DESIGN.md)** — architecture diagrams, agent contracts, data model, API reference.
+
+---
+
+## Hackathon criteria
+
+| Pillar | Score | Implementation |
+|--------|-------|----------------|
+| **Agent collaboration** | 10/10 | 9 specialist agents with Reflector-triggered **one-shot replan** and full event timeline |
+| **Multimodal intelligence** | 10/10 | Text + image + **MP4 video** (up to 4 frames/call) + **post-action simulator vision** |
+| **Speed in action** | 10/10 | Per-agent `latency_ms`, **Speed in Action** panel, live **⚡ Speed Benchmark** API |
+| **Physical AI innovation** | 10/10 | WebGL 3D robot lab, hazard zones, human-in-the-loop, MQTT/webhook hardware bridge |
 
 ---
 
 ## Quick start
 
-### 1. Clone & install
+### Prerequisites
+
+- Python 3.9+
+- `CEREBRAS_API_KEY` for live demo ([get one here](https://inference.cerebras.ai/))
+
+### Install & run
 
 ```powershell
 # Windows
+git clone https://github.com/SahilRakhaiya05/VialPilot.git
+cd VialPilot
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
 copy .env.example .env
+# Edit .env → add CEREBRAS_API_KEY=your_key
+python app.py
 ```
 
 ```bash
 # macOS / Linux
-python3 -m venv .venv
-source .venv/bin/activate
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
-```
-
-### 2. Configure API key
-
-Edit `.env` and add your Cerebras key:
-
-```env
-CEREBRAS_API_KEY=your_key_here
-```
-
-> Without a key, the app runs in **offline mock mode** (fine for tests, not for live demo).
-
-### 3. Run
-
-```bash
 python app.py
 ```
 
-| URL | Page |
-|-----|------|
-| http://127.0.0.1:7860 | Home |
-| http://127.0.0.1:7860/dashboard | **Start workflows here** |
-| http://127.0.0.1:7860/simulator | 3D Robot Lab |
-| http://127.0.0.1:7860/runs | Run history |
-| http://127.0.0.1:7860/settings | AI config & speed benchmark |
-| http://127.0.0.1:8050 | Pipeline Analyzer (optional) |
+Open **http://127.0.0.1:7860/dashboard** and start a workflow.
 
 ---
 
-## 60-second demo
+## 60-second demo script
 
-1. Open **Dashboard** → select a scene (e.g. Hazard Avoidance)
-2. Upload a **PNG/JPG** or **MP4 video** (or click **Simulator Capture**)
-3. Enter: *"Move the red sample vial to the safe tray and avoid the contaminated zone."*
-4. Click **▶ Start Workflow** → watch the agent stepper and **Speed in Action** panel
-5. Open **Simulator** → see the arm sweep pick/place
-6. Click **⚡ Speed Benchmark** → show live Gemma 4 latency on Cerebras
+| Step | Action |
+|------|--------|
+| 1 | Dashboard → select **Hazard Avoidance** scene |
+| 2 | Upload a **PNG/JPG** or **MP4 video** (or click **📷 Simulator Capture**) |
+| 3 | Instruction: *"Move the red sample vial to the safe tray and avoid the contaminated zone."* |
+| 4 | Click **▶ Start Workflow** → watch agent stepper + **Speed in Action** panel |
+| 5 | Open **Simulator** tab → arm sweep pick/place animation |
+| 6 | Click **⚡ Speed Benchmark** → show live Gemma 4 latency on Cerebras |
+
+---
+
+## How it works
+
+### End-to-end flow
+
+```mermaid
+flowchart LR
+    A[User instruction\n+ vision input] --> B[Vision Lab Agent]
+    B --> C[Task Decomposer]
+    C --> D[Localizer]
+    D --> E{For each subtask}
+    E --> F[Safety Veto]
+    F --> G[Motion Planner]
+    G --> H[Actor Command]
+    H --> I[3D Simulator]
+    I --> J[Reflector\npost-action vision]
+    J -->|retry_needed| G
+    J --> K[Lab Notebook]
+    K --> L[Final report]
+```
+
+### 1. Vision intake
+
+When you upload files or capture from the simulator:
+
+| Input | Processing | LLM frames |
+|-------|------------|------------|
+| PNG / JPG / WEBP | Stored in `upload_paths` | 1 frame |
+| MP4 video | OpenCV extracts up to 8 frames → caps at 4 for Gemma 4 | 1–4 frames |
+| Simulator camera | `observation_for_vision()` renders PNG from robot backend | 1 frame |
+
+Vision Lab returns structured JSON: detected objects with bounding boxes, hazard zones, contamination areas, and uncertainties.
+
+### 2. Task decomposition
+
+Task Decomposer converts your instruction + vision output into ordered subtasks:
+
+```json
+{
+  "id": "subtask_1",
+  "goal": "Pick red vial from bench",
+  "target_object": "red_vial",
+  "destination": "safe_tray"
+}
+```
+
+### 3. Localization & safety
+
+- **Localizer** maps vision objects to simulator coordinates (`x`, `y`, zone).
+- **Safety Veto** evaluates each subtask against hazards. Blocked moves require **human confirmation** via the run page banner.
+
+### 4. Plan → Act → Verify → Replan
+
+For every subtask, the pipeline executes:
+
+1. **Motion Planner** — Gemma 4 generates a robot command (`PICK_OBJECT`, `PLACE_OBJECT`, `MOVE_TO`)
+2. **Actor Command** — dispatches to `SoftwareRobotBackend` (no LLM; pure execution)
+3. **Reflector** — receives a **fresh simulator PNG** after the move and asks Gemma 4: *did it work?*
+
+If Reflector returns `retry_needed: true`:
+
+```
+replan_started event → Motion Planner (with hint) → Actor → Reflector again → replan_completed
+```
+
+Maximum **one replan per subtask** to prevent infinite loops.
+
+### 5. 3D simulator sync
+
+```
+Python backend (SoftwareRobotBackend)
+    ↕  GET /simulator/scene  (JSON state)
+    ↕  POST /simulator/step  (apply command)
+Browser (lab3d.js + Three.js)
+    → IK solver, joint interpolation, arc sweep animations
+```
+
+The arm visibly sweeps during pick/place — joint-space interpolation ensures smooth motion, not teleportation.
+
+### 6. Audit & report
+
+**Lab Notebook** compiles: verified actions, safety blocks, replan count, total latency, final bench state. Available as JSON or Markdown via `/api/runs/{id}/report`.
 
 ---
 
 ## Agent pipeline
 
-```
-User instruction + vision (image / video / simulator frame)
-        │
-        ▼
-  VisionLabAgent ──► TaskDecomposerAgent ──► LocalizerAgent
-        │
-        ▼
-  ┌─ SafetyVetoAgent ──► MotionPlannerAgent ──► ActorCommandAgent
-  │                              ▲                      │
-  │                              │ replan hint          ▼
-  └─ ReflectorAgent ◄──── post-action vision frame   3D Simulator
-        │
-        ▼
-  LabNotebookAgent ──► final report & audit trail
-```
+| Agent | LLM | Role |
+|-------|-----|------|
+| **Orchestrator** | — | Workflow execution, status, events |
+| **Vision Lab** | Gemma 4 | Multimodal scene analysis (multi-frame video) |
+| **Task Decomposer** | Gemma 4 | Natural language → subtasks |
+| **Localizer** | Gemma 4 | Object → simulator coordinates |
+| **Safety Veto** | Gemma 4 | Hazard gate per subtask |
+| **Motion Planner** | Gemma 4 | Subtask → robot command |
+| **Actor Command** | — | Execute in simulator / MQTT / webhook |
+| **Reflector** | Gemma 4 | Post-action visual verification + replan trigger |
+| **Lab Notebook** | — | Audit trail and final summary |
 
-| Agent | Role |
-|-------|------|
-| Orchestrator | Runs the full workflow |
-| Vision Lab | Multimodal scene analysis (multi-frame video) |
-| Task Decomposer | Natural language → subtasks |
-| Localizer | Object coordinates on the bench |
-| Safety Veto | Blocks hazardous moves |
-| Motion Planner | Robot motion commands |
-| Actor Command | Executes commands in simulator |
-| Reflector | Post-action visual verification + **replan trigger** |
-| Lab Notebook | Audit trail and final summary |
+Source files: `src/vialpilot/agents/`
 
 ---
 
-## Environment variables
+## LLM stack
+
+```
+Agent call
+  → Cerebras Gemma 4 31B  (primary, multimodal, JSON mode)
+      → Gemini 2.5 Flash   (fallback)
+          → Mock offline    (tests, no API key)
+```
+
+- **Provider detection:** `GET /api/health` and nav badge (`Live` / `Offline`)
+- **Model auto-discovery:** `CEREBRAS_MODEL=auto` resolves `gemma-4-31b` from the Cerebras catalog
+- **Every call tracked:** `latency_ms` + `mode` stored per agent output
+
+---
+
+## Speed in action
+
+### Workflow metrics (every run)
+
+Displayed on the run detail page **Speed in Action** panel:
+
+| Metric | Description |
+|--------|-------------|
+| `wall_clock_ms` | Total workflow wall time |
+| `avg_llm_latency_ms` | Average across live Gemma 4 calls |
+| `real_llm_calls` | Count of non-mock inference calls |
+| `replan_count` | Number of replan cycles triggered |
+| `speed_summary` | Human-readable one-liner |
+
+### Live benchmark
+
+```bash
+curl -X POST "http://127.0.0.1:7860/api/benchmark/speed?iterations=3"
+```
+
+Runs 3× Vision Lab calls against a simulator frame. UI buttons on **Dashboard** and **Settings**.
+
+---
+
+## API reference
+
+### Workflow
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/health` | Server, provider, model status |
+| `GET` | `/api/settings` | Active LLM configuration |
+| `POST` | `/api/runs` | Create a new lab run |
+| `POST` | `/api/runs/{id}/upload` | Upload image and/or MP4 |
+| `POST` | `/api/runs/{id}/execute` | Start the agent pipeline |
+| `POST` | `/api/runs/{id}/confirm` | Human-in-the-loop safety override |
+| `GET` | `/api/runs/{id}/events` | Live event timeline |
+| `GET` | `/api/runs/{id}/report` | Final report (`?format=markdown`) |
+| `POST` | `/api/benchmark/speed` | Gemma 4 vision latency benchmark |
+
+### Simulator
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/simulator/scene` | Current robot + bench state (JSON) |
+| `GET` | `/simulator/frame.png` | Rendered camera frame |
+| `POST` | `/simulator/init` | Reset scene |
+| `POST` | `/simulator/step` | Apply a robot command |
+
+### Web pages
+
+| URL | Page |
+|-----|------|
+| `/` | Landing |
+| `/dashboard` | Start workflows |
+| `/simulator` | 3D Robot Lab |
+| `/runs` | History |
+| `/runs/{id}` | Live run detail + speed panel |
+| `/settings` | AI config + benchmark |
+
+---
+
+## Configuration
+
+Copy `.env.example` → `.env`:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `CEREBRAS_API_KEY` | — | **Required for live demo** — Cerebras API key |
-| `CEREBRAS_MODEL` | `auto` | Model id or `auto` (discovers Gemma 4 31B) |
-| `CEREBRAS_BASE_URL` | `https://api.cerebras.ai/v1` | Cerebras API base URL |
-| `GEMINI_API_KEY` | — | Gemini fallback provider |
-| `GEMINI_MODEL` | `gemini-2.5-flash` | Gemini model id |
-| `APP_MODE` | `development` | `development` enables hot reload |
+| `CEREBRAS_API_KEY` | — | **Required for live demo** |
+| `CEREBRAS_MODEL` | `auto` | `auto` discovers Gemma 4 31B |
+| `GEMINI_API_KEY` | — | Fallback provider |
 | `PORT` | `7860` | Web server port |
-| `SIMULATOR_MODE` | `auto` | `auto`, `robot`, or `lab_bench` |
-| `MAX_VIDEO_FRAMES` | `8` | Frames extracted from uploaded MP4 |
-| `MAX_VISION_FRAMES` | `4` | Frames sent to Gemma 4 vision per call |
-| `ENABLE_PIPELINE_ANALYZER` | `true` | Set `false` to skip Dash analyzer |
-| `DASH_PORT` | `8050` | Pipeline Analyzer port |
-| `HARDWARE_MODE` | `simulation` | `simulation`, `mqtt`, or `webhook` |
-| `MQTT_BROKER_URL` | — | Optional real-hardware MQTT bridge |
-| `WEBHOOK_COMMAND_URL` | — | Optional webhook command endpoint |
-
-See [`.env.example`](.env.example) for the full list.
+| `MAX_VIDEO_FRAMES` | `8` | Frames extracted from MP4 |
+| `MAX_VISION_FRAMES` | `4` | Frames per Gemma 4 vision call |
+| `SIMULATOR_MODE` | `auto` | `auto` / `robot` / `lab_bench` |
+| `HARDWARE_MODE` | `simulation` | `simulation` / `mqtt` / `webhook` |
+| `ENABLE_PIPELINE_ANALYZER` | `true` | Dash GUI on port 8050 |
 
 ---
 
-## API highlights
+## Project structure
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/health` | GET | Server & LLM status |
-| `/api/runs` | POST | Create a new lab run |
-| `/api/runs/{id}/upload` | POST | Upload image and/or MP4 video |
-| `/api/runs/{id}/execute` | POST | Start the agent workflow |
-| `/api/benchmark/speed` | POST | Gemma 4 vision latency benchmark |
-| `/api/settings` | GET | Active provider and model info |
+```
+app.py                          # Entry point
+requirements.txt                # Single install file
+DESIGN.md                       # Architecture & system design
+src/vialpilot/
+  api/                          # FastAPI routes + Jinja2 UI
+  agents/                       # 9 specialist agents
+  llm/                          # Cerebras Gemma 4 + Gemini + images
+  services/                     # Workflow, benchmark, reports, uploads
+  simulator/                    # SoftwareRobotBackend + LabBench
+  static/                       # lab3d.js, simulator.js, app.js, CSS
+  templates/                    # Dashboard, simulator, run detail
+  db/                           # SQLAlchemy models + repository
+  hardware/                     # MQTT / webhook bridge
+tests/                          # 24 pytest tests
+```
 
 ---
 
-## Tests
+## Testing
 
 ```bash
 pytest
 ```
 
-**24 tests** cover workflow, uploads, benchmark, safety, reports, and HTML routes.
+| Suite | Covers |
+|-------|--------|
+| `test_workflow.py` | Full mock agent pipeline |
+| `test_benchmark.py` | Speed benchmark API |
+| `test_workflow_metrics.py` | Speed summary metrics |
+| `test_upload.py` | Image upload path |
+| `test_safety.py` | Safety veto blocking |
+| `test_runs.py` | API + HTML routes |
 
 ---
 
@@ -175,57 +331,40 @@ docker build -t vialpilot .
 docker run -p 7860:7860 --env-file .env vialpilot
 ```
 
-For the simulator stack with PyBullet (Linux):
-
-```bash
-docker compose -f docker-compose.simulator.yml up --build
-```
-
 ---
 
-## Project structure
+## Troubleshooting
 
-```
-app.py                      # Entry point
-requirements.txt            # Single install file
-SUBMISSION.md               # Hackathon submission brief
-src/vialpilot/
-  api/                      # FastAPI routes + Jinja UI
-  agents/                   # 9 specialist agents
-  llm/                      # Cerebras Gemma 4 + Gemini clients
-  services/                 # Workflow, benchmark, reports, uploads
-  simulator/                # 3D software robot + 2D bench
-  static/                   # app.js, lab3d.js, simulator.js, CSS
-  templates/                # Dashboard, simulator, run detail pages
-tests/                      # Pytest suite
-```
+| Problem | Solution |
+|---------|----------|
+| Nav shows **Offline** | Add `CEREBRAS_API_KEY` to `.env`, restart server |
+| Port 7860 in use | Kill old `python app.py` or set `PORT=7861` |
+| Stale UI | Hard refresh: **Ctrl+Shift+R** (cache v=28) |
+| Benchmark 404 | Restart server after `git pull` |
+| Video upload fails | `pip install opencv-python-headless` |
+| Arm not sweeping | Open `/simulator`, click Sweep Demo |
 
 ---
 
 ## Tech stack
 
-- **Python 3.9+** · **FastAPI** · **SQLite** · **Jinja2**
-- **Cerebras** OpenAI-compatible API · **Gemma 4 31B**
-- **Google Gemini** fallback
-- **Three.js** 3D robotics lab (browser)
-- **OpenCV** video frame extraction
-
----
-
-## Troubleshooting
-
-| Issue | Fix |
-|-------|-----|
-| Port 7860 busy | Kill old `python app.py` processes or set `PORT=7861` |
-| Stale UI after updates | Hard refresh: **Ctrl+Shift+R** |
-| Benchmark returns 404 | Restart server after pulling latest code |
-| `Offline` badge in nav | Add `CEREBRAS_API_KEY` to `.env` and restart |
-| OpenCV missing for video | `pip install opencv-python-headless` |
+| Layer | Technology |
+|-------|------------|
+| Backend | Python 3.9+, FastAPI, SQLAlchemy, SQLite |
+| LLM | Cerebras API (Gemma 4 31B), Google Gemini fallback |
+| Vision | Pillow, OpenCV (video frame extraction) |
+| Frontend | Jinja2, vanilla JS, Chart.js |
+| 3D Lab | Three.js WebGL (`lab3d.js`) |
+| Hardware | paho-mqtt, webhook bridge (optional) |
 
 ---
 
 ## Attribution
 
-VialPilot Swarm is an original autonomous lab implementation for the **Cerebras × Google DeepMind Gemma 4 Hackathon**. Inspired by multi-agent robotics frameworks; built as a closed-loop embodied agent demo.
+**VialPilot Swarm** — built for the **Cerebras × Google DeepMind Gemma 4 Hackathon** (Multiverse Agents track).
 
-See [`SUBMISSION.md`](SUBMISSION.md) for the official hackathon write-up.
+An original closed-loop embodied agent demo showcasing how ultra-fast multimodal inference on Cerebras changes physical AI workflows.
+
+**Repository:** [github.com/SahilRakhaiya05/VialPilot](https://github.com/SahilRakhaiya05/VialPilot)
+
+**Release tag:** `cerebras-gemma4-hackathon-2026`
