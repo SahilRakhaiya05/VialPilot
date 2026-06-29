@@ -147,3 +147,4 @@ class AgentReflectRequest(BaseModel):
     subtask: Dict[str, Any]
     actor_result: Dict[str, Any]
     scene_state: Dict[str, Any]
+    image_path: Optional[str] = None

@@ -39,9 +39,16 @@ from src.vialpilot.services.reports import report_to_json, report_to_markdown
 from src.vialpilot.integrations.run_to_log import run_to_log_text
 from src.vialpilot.services.executor import execute_async, is_running
 
+from src.vialpilot.services.benchmark import run_speed_benchmark
 from src.vialpilot.services.workflow import execute_run
 
 router = APIRouter(prefix="/api")
+
+
+@router.post("/benchmark/speed")
+def benchmark_speed(iterations: int = 3):
+    """Benchmark Gemma 4 vision latency on Cerebras (hackathon speed demo)."""
+    return run_speed_benchmark(iterations=iterations)
 
 
 @router.get("/models/cerebras")
@@ -286,4 +293,17 @@ def agent_plan(body: AgentPlanRequest):
 
 @router.post("/agent/reflect")
 def agent_reflect(body: AgentReflectRequest):
-    return reflector_agent.run(body.subtask, body.actor_result, body.scene_state)
+    from src.vialpilot.services.files import read_image_bytes, image_mime_for_path
+
+    image_bytes = None
+    mime = "image/png"
+    if body.image_path:
+        image_bytes = read_image_bytes(body.image_path)
+        mime = image_mime_for_path(body.image_path)
+    return reflector_agent.run(
+        body.subtask,
+        body.actor_result,
+        body.scene_state,
+        image_bytes=image_bytes,
+        image_mime=mime,
+    )

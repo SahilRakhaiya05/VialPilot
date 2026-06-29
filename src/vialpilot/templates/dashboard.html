@@ -58,6 +58,12 @@
               <span class="vision-drop-text">Drop image or click to browse</span>
               <span class="vision-drop-hint">PNG, JPG, WEBP — optional</span>
             </div>
+            <div class="vision-drop vision-drop-video mt-8">
+              <input type="file" id="video-input" name="video" accept=".mp4,video/mp4">
+              <span class="vision-drop-icon">🎬</span>
+              <span class="vision-drop-text">Or upload bench video (MP4)</span>
+              <span class="vision-drop-hint">Up to 8 frames sent to Gemma 4 vision</span>
+            </div>
             <div class="vision-preview-wrap">
               <img id="dash-vision-preview" alt="Vision preview">
               <span class="vision-preview-empty">Preview</span>
@@ -66,7 +72,9 @@
           <div class="vision-input-actions">
             <button type="button" class="vision-btn primary" data-vision-capture>📷 Simulator Capture</button>
             <button type="button" class="vision-btn" data-vision-clear>Clear</button>
+            <button type="button" class="vision-btn" id="btn-speed-bench">⚡ Speed Benchmark</button>
           </div>
+          <p class="hint speed-benchmark-result" id="dash-bench-result" hidden></p>
         </div>
 
         <button type="submit" class="btn-primary w-full mt-20" id="submit-btn">▶ Start Workflow</button>
@@ -112,8 +120,8 @@
 </section>
 {% endblock %}
 {% block extra_scripts %}
-<script src="/static/lab3d.js?v=22"></script>
-<script src="/static/simulator.js?v=22"></script>
+<script src="/static/lab3d.js?v=28"></script>
+<script src="/static/simulator.js?v=28"></script>
 <script>
 fetch('/api/settings').then(r=>r.json()).then(s=>{
   const el=document.getElementById('stat-provider');
@@ -126,6 +134,7 @@ fetch('/api/runs').then(r=>r.json()).then(runs=>{
   if(el) el.textContent=runs.length;
 });
 
+document.getElementById('btn-speed-bench')?.addEventListener('click', () => VialPilot.runSpeedBenchmark('dash-bench-result'));
 document.addEventListener('DOMContentLoaded', () => {
   VialPilot.setupVisionInput('dash-vision-input');
   fetch('/simulator/init', {
@@ -164,10 +173,12 @@ document.getElementById('new-run-form').addEventListener('submit', async (e) => 
   const { run_id } = await createRes.json();
   progFill.style.width = '30%';
   const image = document.getElementById('image-input').files[0];
-  if (image) {
+  const video = document.getElementById('video-input')?.files[0];
+  if (image || video) {
     status.textContent = 'Uploading vision input…';
     const fd = new FormData();
-    fd.append('image', image);
+    if (image) fd.append('image', image);
+    if (video) fd.append('video', video);
     const upRes = await fetch(`/api/runs/${run_id}/upload`, { method: 'POST', body: fd });
     if (!upRes.ok) { status.textContent = 'Vision upload failed.'; status.className = 'error'; btn.disabled = false; return; }
   }

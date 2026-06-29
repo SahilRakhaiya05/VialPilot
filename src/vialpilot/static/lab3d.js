@@ -10,12 +10,14 @@
   const ZONE_FILL = { source: 0x5a6470, destination: 0xfad4e4, hazard: 0x8a4040 };
   const ZONE_EDGE = { source: 0x6a7588, destination: 0xf07898, hazard: 0xc05050 };
   const ARM_ORIGIN = { x: 0, y: 0.31, z: 0 };
-  const HOME = { x: 0, z: 0.02 };
   const TABLE_Y = 0.31;
   const BLOCK_TOP_Y = TABLE_Y + 0.056;
-  const H = { travel: 0.64, approach: 0.52, hover: 0.44, grasp: BLOCK_TOP_Y, lift: 0.56 };
-  const LERP = 0.045;
-  const GRIP_LERP = 0.1;
+  const H = { ready: 0.40, travel: 0.54, approach: 0.48, hover: 0.42, grasp: BLOCK_TOP_Y, lift: 0.52 };
+  // Idle pose — centered over bench, gripper open, facing the work area.
+  const HOME = { x: 0, y: H.ready, z: 0.10 };
+  const HOME_JOINTS = { j1y: 0.38, j1: Math.PI, j2: -0.86, j3: 0.28 };
+  const LERP = 0.09;
+  const GRIP_LERP = 0.16;
 
   function benchToWorld(x, y, bench) {
     const bw = bench?.width || 10, bh = bench?.height || 6;
@@ -29,10 +31,24 @@
     while (d < -Math.PI) d += Math.PI * 2;
     return c + d * f;
   }
+  function lerpAngleFull(a, b, t) {
+    let d = b - a;
+    while (d > Math.PI) d -= Math.PI * 2;
+    while (d < -Math.PI) d += Math.PI * 2;
+    return a + d * t;
+  }
+  function angleDelta(a, b) {
+    let d = b - a;
+    while (d > Math.PI) d -= Math.PI * 2;
+    while (d < -Math.PI) d += Math.PI * 2;
+    return Math.abs(d);
+  }
 
   const JLIMIT = {
     j1y: [0.04, 0.44], j1: [-1.85, 1.85], j2: [-1.55, -0.04], j3: [-0.25, 1.05],
   };
+  // Measured from the scene graph after build (shoulder→elbow, elbow→TCP).
+  const ARM_LEN = { L1: 0.28, L2: 0.16 };
 
   function clampV(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
   function clampTy(ty) { return clampV(ty, BLOCK_TOP_Y - 0.004, 0.72); }
@@ -84,8 +100,8 @@
       };
       this.vials = new Map();
       this._sceneHash = '';
-      this._joint = { j1y: 0.38, j1: 0, j2: -0.5, j3: 0.2 };
-      this._jointTarget = { j1y: 0.38, j1: 0, j2: -0.5, j3: 0.2 };
+      this._joint = { ...HOME_JOINTS };
+      this._jointTarget = { ...HOME_JOINTS, tx: HOME.x, ty: HOME.y, tz: HOME.z };
       this._gripperOpen = 1;
       this._gripperTarget = 1;
       this._motionQueue = [];
@@ -110,8 +126,8 @@
       if (this.opts.labStyle) this.scene.fog = new THREE.Fog(0xdce4ee, 2.8, 7.5);
 
       this.camera = new THREE.PerspectiveCamera(42, w / h, 0.1, 50);
-      this.camera.position.set(0, 0.92, 1.28);
-      this.camera.lookAt(0, 0.32, 0.02);
+      this.camera.position.set(0, 0.88, 1.22);
+      this.camera.lookAt(0, 0.36, 0.08);
 
       this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
       this.renderer.setSize(w, h);
@@ -192,7 +208,7 @@
       this.controls = new OrbitControls(this.camera, this.renderer.domElement);
       this.controls.enableDamping = true;
       this.controls.dampingFactor = 0.07;
-      this.controls.target.set(0, 0.32, 0.02);
+      this.controls.target.set(0, 0.36, 0.08);
       this.controls.minDistance = 0.7;
       this.controls.maxDistance = 3.5;
       this.controls.maxPolarAngle = Math.PI / 2.1;
@@ -239,9 +255,9 @@
 
     setCameraPreset(preset) {
       const presets = {
-        iso: { pos: [0, 0.92, 1.28], target: [0, 0.32, 0.02] },
-        top: { pos: [0, 2.1, 0.15], target: [0, 0.31, 0] },
-        side: { pos: [1.55, 0.78, 0.12], target: [0, 0.34, 0] },
+        iso: { pos: [0, 0.88, 1.22], target: [0, 0.36, 0.08] },
+        top: { pos: [0, 2.0, 0.12], target: [0, 0.34, 0.06] },
+        side: { pos: [1.45, 0.76, 0.18], target: [0, 0.36, 0.06] },
       };
       const p = presets[preset] || presets.iso;
       this.camera.position.set(...p.pos);
@@ -322,8 +338,10 @@
       j1s.castShadow = true;
       this.j1.add(j1s);
 
+      // Pitch groups: rotate around local X (perpendicular to links along -Z).
       this.j2 = new THREE.Group();
-      this.j2.position.y = 0;
+      this.j2.position.set(0, 0, 0);
+      this.j2.rotation.order = 'XYZ';
       const link = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.07, 0.28), steel);
       link.position.set(0, 0, -0.14);
       link.castShadow = true;
@@ -334,7 +352,8 @@
       this.j1.add(this.j2);
 
       this.j3 = new THREE.Group();
-      this.j3.position.set(0, 0, -0.28);
+      this.j3.position.set(0, 0, -ARM_LEN.L1);
+      this.j3.rotation.order = 'XYZ';
       const fore = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, 0.12), steel);
       fore.position.set(0, 0, -0.06);
       fore.castShadow = true;
@@ -415,6 +434,22 @@
 
       this.heldVial = null;
       this.scene.add(this.arm);
+      this._calibrateArmLengths();
+      this._applyHomePose();
+    }
+
+    _calibrateArmLengths() {
+      const THREE = global.THREE;
+      const elbow = new THREE.Vector3();
+      const tcp = new THREE.Vector3();
+      const saved = { ...this._joint };
+      this._joint = { j1y: 0.28, j1: 0, j2: -0.04, j3: -0.04 };
+      this._applyJointsFromState();
+      this.j3.getWorldPosition(elbow);
+      this._tcpMarker.getWorldPosition(tcp);
+      ARM_LEN.L2 = Math.max(0.14, elbow.distanceTo(tcp));
+      this._joint = saved;
+      this._applyJointsFromState();
     }
 
     _makeBlock(colorName, id) {
@@ -474,8 +509,17 @@
       }
       this.vials.forEach(v => this.vialGroup.remove(v));
       this.vials.clear();
-      this._ikSolve(HOME.x, H.travel, HOME.z);
+      this._applyHomePose();
+    }
+
+    /** Snap arm to the tuned idle / ready stance above table center. */
+    _applyHomePose() {
+      this._joint = this._jointTarget = {
+        ...HOME_JOINTS,
+        tx: HOME.x, ty: HOME.y, tz: HOME.z,
+      };
       this._gripperOpen = this._gripperTarget = 1;
+      this._applyJointsFromState();
       this._setGripperOpen(1);
     }
 
@@ -498,9 +542,10 @@
       if (!this.j1) return;
       const j = this._joint;
       this.j1.position.y = j.j1y ?? 0.25;
-      this.j1.rotation.y = j.j1 ?? 0;
-      this.j2.rotation.z = j.j2 ?? -0.7;
-      this.j3.rotation.z = j.j3 ?? 0.4;
+      this.j1.rotation.set(0, j.j1 ?? 0, 0);
+      // Links extend along local -Z; pitch joints bend in the YZ plane via rotation.x.
+      this.j2.rotation.set(j.j2 ?? -0.7, 0, 0);
+      this.j3.rotation.set(j.j3 ?? 0.4, 0, 0);
       if (this.arm) this.arm.updateMatrixWorld(true);
     }
 
@@ -514,13 +559,52 @@
     }
 
     _swingAngle(tx, tz) {
-      return Math.atan2(tx - ARM_ORIGIN.x, tz - ARM_ORIGIN.z);
+      const dx = tx - ARM_ORIGIN.x;
+      const dz = tz - ARM_ORIGIN.z;
+      // Yaw so local -Z aligns with the bench target in XZ.
+      return Math.atan2(-dx, -dz);
+    }
+
+    /** Planar 2-link seed in the arm swing plane (after yaw is set). */
+    _planarIkSeed(tx, ty, tz) {
+      const toward = this._swingAngle(tx, tz);
+      const reach = Math.hypot(tx - ARM_ORIGIN.x, tz - ARM_ORIGIN.z);
+      const L1 = ARM_LEN.L1;
+      const L2 = ARM_LEN.L2;
+      let best = null;
+      for (const j1y of [0.14, 0.22, 0.3, 0.38]) {
+        const shY = ARM_ORIGIN.y + j1y;
+        const dy = ty - shY;
+        const dist = Math.hypot(reach, dy);
+        if (dist > L1 + L2 - 0.01 || dist < Math.abs(L1 - L2) + 0.01) continue;
+        const cosElbow = clampV((L1 * L1 + L2 * L2 - dist * dist) / (2 * L1 * L2), -1, 1);
+        const elbow = Math.acos(cosElbow);
+        const aim = Math.atan2(dy, reach);
+        const shoulder = aim - Math.atan2(L2 * Math.sin(elbow), L1 + L2 * Math.cos(elbow));
+        const j2 = clampV(shoulder - Math.PI / 2, JLIMIT.j2[0], JLIMIT.j2[1]);
+        const j3 = clampV(Math.PI - elbow - (shoulder + Math.PI / 2), JLIMIT.j3[0], JLIMIT.j3[1]);
+        const seed = { j1y, j1: toward, j2, j3 };
+        const err = this._poseError(tx, ty, tz, seed);
+        if (!best || err < best.err) best = { ...seed, err };
+      }
+      return best || { j1y: 0.28, j1: toward, j2: -0.85, j3: 0.55, err: Infinity };
+    }
+
+    _poseError(tx, ty, tz, pose) {
+      const THREE = global.THREE;
+      const prev = { ...this._joint };
+      this._joint = pose;
+      this._applyJointsFromState();
+      const err = this._tcpWorld().distanceTo(new THREE.Vector3(tx, clampTy(ty), tz));
+      this._joint = prev;
+      this._applyJointsFromState();
+      return err;
     }
 
     _ikIterate(target, seed, toward) {
       let { j1y, j1, j2, j3 } = seed;
       let best = { j1y, j1, j2, j3, err: Infinity };
-      for (let iter = 0; iter < 72; iter++) {
+      for (let iter = 0; iter < 96; iter++) {
         j1y = clampV(j1y, JLIMIT.j1y[0], JLIMIT.j1y[1]);
         j1 = clampV(j1, JLIMIT.j1[0], JLIMIT.j1[1]);
         j2 = clampV(j2, JLIMIT.j2[0], JLIMIT.j2[1]);
@@ -529,9 +613,9 @@
         this._applyJointsFromState();
         const err = this._tcpWorld().distanceTo(target);
         if (err < best.err) best = { j1y, j1, j2, j3, err };
-        if (err < 0.002) break;
+        if (err < 0.0018) break;
 
-        const eps = 0.011;
+        const eps = 0.009;
         const vals = { j1y, j1, j2, j3 };
         const grads = {};
         for (const p of ['j1y', 'j1', 'j2', 'j3']) {
@@ -541,37 +625,61 @@
           this._applyJointsFromState();
           grads[p] = (this._tcpWorld().distanceTo(target) - err) / eps;
         }
-        j1y = clampV(j1y - grads.j1y * 0.2, JLIMIT.j1y[0], JLIMIT.j1y[1]);
-        j1 = clampV(j1 - grads.j1 * 0.34, JLIMIT.j1[0], JLIMIT.j1[1]);
-        j2 = clampV(j2 - grads.j2 * 0.38, JLIMIT.j2[0], JLIMIT.j2[1]);
-        j3 = clampV(j3 - grads.j3 * 0.38, JLIMIT.j3[0], JLIMIT.j3[1]);
-        j1 = lerpAngle(j1, toward, 0.18);
+        const step = err > 0.06 ? 0.52 : 0.38;
+        j1y = clampV(j1y - grads.j1y * 0.24 * step, JLIMIT.j1y[0], JLIMIT.j1y[1]);
+        j1 = clampV(j1 - grads.j1 * 0.42 * step, JLIMIT.j1[0], JLIMIT.j1[1]);
+        j2 = clampV(j2 - grads.j2 * 0.46 * step, JLIMIT.j2[0], JLIMIT.j2[1]);
+        j3 = clampV(j3 - grads.j3 * 0.46 * step, JLIMIT.j3[0], JLIMIT.j3[1]);
+        if (err > 0.04) j1 = lerpAngle(j1, toward, 0.12);
       }
       return best;
     }
 
-    /** Multi-seed IK — always swings from center (home) side, never wrong hemisphere. */
-    _ikSolve(tx, ty, tz) {
+    /** Multi-seed IK — yaw toward target, elbow/wrist pitch for reach & height. */
+    _ikSolveCore(tx, ty, tz) {
       const THREE = global.THREE;
       const target = new THREE.Vector3(tx, clampTy(ty), tz);
       const toward = this._swingAngle(tx, tz);
+      const current = this._joint;
+      const planar = this._planarIkSeed(tx, ty, tz);
       const seeds = [
+        // Prefer the current pose. This prevents visible elbow flips while a
+        // Cartesian path is sampled frame by frame.
+        { j1y: current.j1y ?? 0.28, j1: current.j1 ?? toward, j2: current.j2 ?? -0.9, j3: current.j3 ?? 0.6 },
+        { j1y: planar.j1y, j1: toward, j2: planar.j2, j3: planar.j3 },
         { j1y: 0.3, j1: toward, j2: -0.95, j3: 0.7 },
         { j1y: 0.2, j1: toward, j2: -1.2, j3: 0.88 },
         { j1y: 0.36, j1: toward, j2: -0.72, j3: 0.48 },
-        { j1y: this._joint.j1y ?? 0.28, j1: toward, j2: this._joint.j2 ?? -0.9, j3: this._joint.j3 ?? 0.6 },
       ];
       let best = null;
       for (const s of seeds) {
         const r = this._ikIterate(target, s, toward);
-        if (!best || r.err < best.err) best = r;
+        const poseDelta = Math.abs(r.j2 - (current.j2 ?? r.j2)) + Math.abs(r.j3 - (current.j3 ?? r.j3));
+        const yawDelta = angleDelta(r.j1, toward);
+        r.score = r.err + poseDelta * 0.004 + yawDelta * 0.012;
+        if (!best || r.score < best.score) best = r;
       }
-      this._joint = this._jointTarget = {
+      return {
         j1y: best.j1y, j1: best.j1, j2: best.j2, j3: best.j3,
-        tx, ty: target.y, tz,
+        tx, ty: target.y, tz, err: best.err,
       };
+    }
+
+    /** Solve IK and apply — returns final error (m). */
+    _ikSolve(tx, ty, tz) {
+      const pose = this._ikSolvePose(tx, ty, tz);
+      this._joint = this._jointTarget = pose;
       this._applyJointsFromState();
-      return best.err;
+      return pose.err;
+    }
+
+    /** Solve IK without disturbing the live joint state. */
+    _ikSolvePose(tx, ty, tz) {
+      const saved = { ...this._joint };
+      const pose = this._ikSolveCore(tx, ty, tz);
+      this._joint = saved;
+      this._applyJointsFromState();
+      return pose;
     }
 
     loadScene() {
@@ -598,7 +706,7 @@
       return { x: lerp(HOME.x, tx, t), z: lerp(HOME.z, tz, t) };
     }
 
-    _sweepArc(ax, az, bx, bz, count) {
+    _sweepArc(ax, az, bx, bz, count, opts = {}) {
       const pts = [];
       const n = count || 6;
       const dx = bx - ax;
@@ -607,14 +715,16 @@
       let nx = -dz / len;
       let nz = dx / len;
       if (nz < 0) { nx = -nx; nz = -nz; }
-      const bulge = 0.1;
+      const bulge = opts.bulge ?? 0.14;
+      const baseY = opts.baseY ?? H.lift;
+      const lift = opts.lift ?? 0.12;
       for (let i = 1; i <= n; i++) {
         const t = i / n;
         const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
         const x = lerp(ax, bx, ease);
         const z = lerp(az, bz, ease);
         const b = Math.sin(t * Math.PI) * bulge;
-        const arcY = H.lift + Math.sin(t * Math.PI) * 0.1;
+        const arcY = baseY + Math.sin(t * Math.PI) * lift;
         pts.push({ x: x + nx * b, z: z + nz * b, y: arcY });
       }
       return pts;
@@ -689,7 +799,7 @@
       await this._animateBlockIntoGrip(id, scene, bench);
     }
 
-    /** Full sweep — center approach, align XYZ, descend, grip, smooth lift. */
+    /** Full sweep — arc from home, yaw swing, descend, grip, lift. */
     async animateSweepPick(sceneData, objectId) {
       const scene = sceneData.scene || sceneData;
       const bench = scene.bench_size || { width: 10, height: 6 };
@@ -698,24 +808,28 @@
       this._motionScene = scene;
       this._motionBench = bench;
       const bt = this._blockTarget(obj, bench);
-      const w20 = this._pathPoint(bt.x, bt.z, 0.2);
-      const w45 = this._pathPoint(bt.x, bt.z, 0.45);
-      const w70 = this._pathPoint(bt.x, bt.z, 0.7);
+      const cur = this._tcpWorld();
+      const from = { x: cur.x, z: cur.z };
+      const arc = this._sweepArc(from.x, from.z, bt.x, bt.z, 6, {
+        bulge: 0.08, baseY: H.travel, lift: 0.06,
+      });
       const approach = [
-        { x: HOME.x, z: HOME.z, y: H.travel, grip: 1, ms: 600 },
-        { x: w20.x, z: w20.z, y: H.travel, grip: 1, ms: 950 },
-        { x: w45.x, z: w45.z, y: H.approach, grip: 1, ms: 1050 },
-        { x: w70.x, z: w70.z, y: H.hover, grip: 1, ms: 950 },
-        { x: bt.x, z: bt.z, y: H.hover, grip: 1, ms: 900 },
-        { x: bt.x, z: bt.z, y: 0.48, grip: 1, ms: 880 },
-        { x: bt.x, z: bt.z, y: 0.42, grip: 1, ms: 850 },
-        { x: bt.x, z: bt.z, y: bt.y, grip: 1, ms: 820 },
-        { x: bt.x, z: bt.z, y: bt.y, grip: 0.35, ms: 380 },
-        { x: bt.x, z: bt.z, y: bt.y, grip: 0.08, ms: 320, holdMs: 280 },
-        { x: bt.x, z: bt.z, y: bt.y, grip: 0, ms: 280, attach: objectId, holdMs: 180 },
-        { x: bt.x, z: bt.z, y: H.lift, grip: 0, ms: 900 },
-        { x: bt.x, z: bt.z, y: H.travel, grip: 0, ms: 1000 },
+        { x: from.x, z: from.z, y: H.travel, grip: 1, ms: 480 },
       ];
+      arc.forEach((pt, i) => {
+        approach.push({ x: pt.x, z: pt.z, y: pt.y, grip: 1, ms: 720 + i * 60 });
+      });
+      approach.push(
+        { x: bt.x, z: bt.z, y: H.hover, grip: 1, ms: 700 },
+        { x: bt.x, z: bt.z, y: 0.48, grip: 1, ms: 660 },
+        { x: bt.x, z: bt.z, y: 0.42, grip: 1, ms: 620 },
+        { x: bt.x, z: bt.z, y: bt.y, grip: 1, ms: 600 },
+        { x: bt.x, z: bt.z, y: bt.y, grip: 0.35, ms: 360 },
+        { x: bt.x, z: bt.z, y: bt.y, grip: 0.08, ms: 320, holdMs: 300 },
+        { x: bt.x, z: bt.z, y: bt.y, grip: 0, ms: 280, attach: objectId, holdMs: 220 },
+        { x: bt.x, z: bt.z, y: H.lift, grip: 0, ms: 760 },
+        { x: bt.x, z: bt.z, y: H.travel, grip: 0, ms: 840 },
+      );
       await this._runMotionSequence(approach);
       this._pickPos = { x: bt.x, z: bt.z };
       this._motionScene = null;
@@ -737,26 +851,26 @@
       this._applyJointsFromState();
       const cur = this._tcpWorld();
       const from = { x: cur.x, z: cur.z };
-      const arc = this._sweepArc(from.x, from.z, zt.x, zt.z, 8);
+      const arc = this._sweepArc(from.x, from.z, zt.x, zt.z, 10, { bulge: 0.16, lift: 0.14 });
       const midHome = this._pathPoint(zt.x, zt.z, 0.5);
 
       const steps = [
-        { x: from.x, z: from.z, y: H.travel, grip: 0, ms: 700 },
+        { x: from.x, z: from.z, y: H.travel, grip: 0, ms: 620 },
       ];
       arc.forEach((pt, i) => {
-        steps.push({ x: pt.x, z: pt.z, y: pt.y, grip: 0, ms: 780 + i * 55 });
+        steps.push({ x: pt.x, z: pt.z, y: pt.y, grip: 0, ms: 680 + i * 48 });
       });
       steps.push(
-        { x: zt.x, z: zt.z, y: H.hover, grip: 0, ms: 900 },
-        { x: zt.x, z: zt.z, y: 0.44, grip: 0, ms: 850 },
-        { x: zt.x, z: zt.z, y: 0.40, grip: 0, ms: 820 },
-        { x: zt.x, z: zt.z, y: zt.y, grip: 0, ms: 880 },
-        { x: zt.x, z: zt.z, y: zt.y, grip: 0.25, ms: 380 },
-        { x: zt.x, z: zt.z, y: zt.y, grip: 1, ms: 520, holdMs: 200,
+        { x: zt.x, z: zt.z, y: H.hover, grip: 0, ms: 760 },
+        { x: zt.x, z: zt.z, y: 0.44, grip: 0, ms: 700 },
+        { x: zt.x, z: zt.z, y: 0.40, grip: 0, ms: 660 },
+        { x: zt.x, z: zt.z, y: zt.y, grip: 0, ms: 700 },
+        { x: zt.x, z: zt.z, y: zt.y, grip: 0.25, ms: 340 },
+        { x: zt.x, z: zt.z, y: zt.y, grip: 1, ms: 480, holdMs: 240,
           onMid: () => this._detachHeldSmoothAt(zt.x, zt.z) },
-        { x: zt.x, z: zt.z, y: H.lift, grip: 1, ms: 850 },
-        { x: midHome.x, z: midHome.z, y: H.travel, grip: 1, ms: 950 },
-        { x: HOME.x, z: HOME.z, y: H.travel, grip: 1, ms: 1100 },
+        { x: zt.x, z: zt.z, y: H.lift, grip: 1, ms: 740 },
+        { x: midHome.x, z: midHome.z, y: H.travel, grip: 1, ms: 820 },
+        { x: HOME.x, z: HOME.z, y: H.ready, grip: 1, ms: 960 },
       );
       await this._runMotionSequence(steps);
       this._pickPos = { x: zt.x, z: zt.z };
@@ -790,14 +904,19 @@
     }
 
     _easeInOutCubic(t) {
-      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      // Quintic smoothstep has zero velocity and acceleration at both ends,
+      // avoiding the robotic start/stop jerk of chained cubic segments.
+      return t * t * t * (t * (t * 6 - 15) + 10);
     }
 
     _animateTo(step, onDone) {
       this._applyJointsFromState();
-      const startTcp = this._tcpWorld();
+      const startJ = {
+        j1y: this._joint.j1y, j1: this._joint.j1,
+        j2: this._joint.j2, j3: this._joint.j3,
+      };
       const endY = clampTy(step.y !== undefined ? step.y : H.hover);
-      const endTcp = { x: step.x, y: endY, z: step.z };
+      const endPose = this._ikSolvePose(step.x, endY, step.z);
       const startGrip = this._gripperOpen;
       const endGrip = step.grip !== undefined ? step.grip : this._gripperTarget;
       const dur = (step.ms || 520) / (this.motionSpeed || 1);
@@ -806,15 +925,20 @@
       const tick = () => {
         const t = Math.min(1, (performance.now() - t0) / dur);
         const e = this._easeInOutCubic(t);
-        const cx = lerp(startTcp.x, endTcp.x, e);
-        const cy = lerp(startTcp.y, endTcp.y, e);
-        const cz = lerp(startTcp.z, endTcp.z, e);
-        this._ikSolve(cx, cy, cz);
+        this._joint = {
+          j1y: lerp(startJ.j1y, endPose.j1y, e),
+          j1: lerpAngleFull(startJ.j1, endPose.j1, e),
+          j2: lerp(startJ.j2, endPose.j2, e),
+          j3: lerp(startJ.j3, endPose.j3, e),
+        };
+        this._jointTarget = { ...this._joint, tx: step.x, ty: endY, tz: step.z };
+        this._applyJointsFromState();
         this._gripperOpen = this._gripperTarget = lerp(startGrip, endGrip, e);
         this._setGripperOpen(this._gripperOpen);
         if (t < 1) requestAnimationFrame(tick);
         else {
-          this._ikSolve(endTcp.x, endTcp.y, endTcp.z);
+          this._joint = this._jointTarget = endPose;
+          this._applyJointsFromState();
           const afterStep = async () => {
             if (step.attach && this._motionScene) {
               await this._tryGripAttach(step.attach, this._motionScene, this._motionBench);
@@ -1014,11 +1138,19 @@
 
       if (instant) {
         this._applySceneObjects(data);
-        if (!opts.skipArm && arm.target) {
-          const ty = arm.target.y || (arm.gripper_open === false ? H.grasp : H.hover);
-          this._ikSolve(arm.target.x, ty, arm.target.z);
+        if (!opts.skipArm) {
+          if (arm.holding && arm.gripper_open === false) {
+            const ty = arm.target?.y || H.hover;
+            if (arm.target) this._ikSolve(arm.target.x, ty, arm.target.z);
+            this._gripperTarget = 0;
+          } else if (!arm.holding) {
+            this._applyHomePose();
+          } else if (arm.target) {
+            const ty = arm.target.y || H.hover;
+            this._ikSolve(arm.target.x, ty, arm.target.z);
+            this._gripperTarget = arm.gripper_open === false ? 0 : 1;
+          }
         }
-        if (!opts.skipArm) this._gripperTarget = arm.gripper_open === false ? 0 : 1;
         this._lastArm = { holding: arm.holding, gripper: arm.gripper_open, target: arm.target };
         return;
       }
@@ -1061,8 +1193,8 @@
         this._joint.j3 = lerp(this._joint.j3, jt.j3, LERP);
         this._gripperOpen += (this._gripperTarget - this._gripperOpen) * GRIP_LERP;
         this._applyJointsFromState();
-        this._setGripperOpen(this._gripperOpen);
       }
+      this._setGripperOpen(this._gripperOpen);
     }
 
     _animate() {

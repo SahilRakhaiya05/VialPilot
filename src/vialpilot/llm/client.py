@@ -2,9 +2,10 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from src.vialpilot.llm.cerebras_gemma import CerebrasGemmaClient
+from src.vialpilot.llm.images import ImageFrame
 from src.vialpilot.llm.gemini_client import GeminiClient
 from src.vialpilot.models.schemas import LLMResult
 
@@ -87,6 +88,7 @@ def run_json(
     fallback_json: Dict[str, Any],
     image_bytes: Optional[bytes] = None,
     image_mime: str = "image/png",
+    images: Optional[List[ImageFrame]] = None,
     temperature: float = 0.1,
 ) -> LLMResult:
     cerebras = _cerebras_client()
@@ -107,6 +109,7 @@ def run_json(
             fallback_json=fallback_json,
             image_bytes=image_bytes,
             image_mime=image_mime,
+            images=images,
             temperature=temperature,
         )
         if result.mode == "real":
@@ -120,6 +123,7 @@ def run_json(
             fallback_json=fallback_json,
             image_bytes=image_bytes,
             image_mime=image_mime,
+            images=images,
             temperature=temperature,
         )
         if result.mode == "real":

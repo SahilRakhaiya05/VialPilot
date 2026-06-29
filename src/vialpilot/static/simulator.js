@@ -2,7 +2,7 @@
 const SimLab = {
   viewer: null,
   _heldId: null,
-  _speed: 0.45,
+  _speed: 1,
   _busy: false,
 
   mount(containerId) {
@@ -119,9 +119,11 @@ const SimLab = {
       await this._setStatus(`Block ${objectId} not found — click Initialize`, 'idle');
       return;
     }
-    await this._setStatus(`Approaching ${objectId.replace('_vial', '')}…`, 'approach');
-    await this.viewer.animateSweepPick(scene, objectId);
-    await this._setStatus(`Gripping ${objectId.replace('_vial', '')}…`, 'grip');
+    await this._setStatus(`Sweeping toward ${objectId.replace('_vial', '')}…`, 'approach');
+    const pickPromise = this.viewer.animateSweepPick(scene, objectId);
+    setTimeout(() => this._setStatus(`Arm swinging — descending…`, 'sweep'), 1200);
+    setTimeout(() => this._setStatus(`Gripping ${objectId.replace('_vial', '')}…`, 'grip'), 4200);
+    await pickPromise;
     await this._step({ command: 'PICK_OBJECT', object_id: objectId });
     this._heldId = objectId;
     const after = await this._scene();

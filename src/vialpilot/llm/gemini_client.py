@@ -3,10 +3,11 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from src.vialpilot.config import GEMINI_API_KEY, GEMINI_MODEL
 from src.vialpilot.models.schemas import LLMResult
+from src.vialpilot.llm.images import ImageFrame, normalize_frames
 from src.vialpilot.utils.json_parse import extract_json
 
 logger = logging.getLogger(__name__)
@@ -36,6 +37,7 @@ class GeminiClient:
         fallback_json: Dict[str, Any],
         image_bytes: Optional[bytes] = None,
         image_mime: str = "image/png",
+        images: Optional[List[ImageFrame]] = None,
         temperature: float = 0.1,
     ) -> LLMResult:
         if not self.enabled or self._client is None:
@@ -49,8 +51,9 @@ class GeminiClient:
             )
 
         contents: list = [user_prompt]
-        if image_bytes and types is not None:
-            contents.append(types.Part.from_bytes(data=image_bytes, mime_type=image_mime))
+        if types is not None:
+            for data, mime in normalize_frames(image_bytes, image_mime, images):
+                contents.append(types.Part.from_bytes(data=data, mime_type=mime))
 
         last_error: Optional[str] = None
         for attempt in range(2):

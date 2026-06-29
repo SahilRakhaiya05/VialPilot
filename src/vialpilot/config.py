@@ -40,3 +40,4 @@ ALLOWED_IMAGE_TYPES = {"image/png", "image/jpeg", "image/jpg", "image/webp"}
 ALLOWED_IMAGE_EXT = {".png", ".jpg", ".jpeg", ".webp"}
 ALLOWED_VIDEO_EXT = {".mp4"}
 MAX_VIDEO_FRAMES = int(os.getenv("MAX_VIDEO_FRAMES", "8"))
+MAX_VISION_FRAMES = int(os.getenv("MAX_VISION_FRAMES", "4"))

@@ -268,11 +268,61 @@ function setupDropZone(zoneId, inputId) {
   });
 }
 
+function renderSpeedPanel(metrics) {
+  const hero = document.getElementById('speed-hero');
+  const headline = document.getElementById('speed-headline');
+  const summary = document.getElementById('speed-summary');
+  const metricsEl = document.getElementById('speed-metrics');
+  if (!hero || !metrics) return;
+  const live = (metrics.real_llm_calls || 0) > 0;
+  hero.classList.toggle('live', live);
+  if (headline) {
+    headline.textContent = live && metrics.cerebras_advantage
+      ? 'Cerebras Speed in Action'
+      : 'Workflow Speed';
+  }
+  if (summary) {
+    summary.textContent = metrics.speed_summary
+      || `Total inference ${Math.round(metrics.total_latency_ms || 0)}ms across ${metrics.agent_calls || 0} agents.`;
+  }
+  if (metricsEl) {
+    const wall = metrics.wall_clock_ms != null ? Math.round(metrics.wall_clock_ms) : '—';
+    const avg = metrics.avg_llm_latency_ms != null ? Math.round(metrics.avg_llm_latency_ms) : '—';
+    const replans = metrics.replan_count || 0;
+    metricsEl.innerHTML = [
+      `<span><strong>${wall}</strong> ms wall clock</span>`,
+      `<span><strong>${avg}</strong> ms avg AI call</span>`,
+      `<span><strong>${metrics.real_llm_calls || 0}</strong> live Gemma calls</span>`,
+      replans ? `<span><strong>${replans}</strong> replan(s)</span>` : '',
+    ].filter(Boolean).join('');
+  }
+}
+
+async function runSpeedBenchmark(resultId) {
+  const el = typeof resultId === 'string' ? document.getElementById(resultId) : resultId;
+  if (el) {
+    el.hidden = false;
+    el.textContent = 'Running 3× Gemma 4 vision benchmark on Cerebras…';
+  }
+  try {
+    const res = await fetch('/api/benchmark/speed?iterations=3', { method: 'POST' });
+    const data = await res.json();
+    const text = data.headline || 'Benchmark complete.';
+    if (el) el.textContent = text;
+    return data;
+  } catch (e) {
+    if (el) el.textContent = 'Benchmark failed — check API key in Settings.';
+    return null;
+  }
+}
+
 function setupVisionInput(rootId) {
   const root = document.getElementById(rootId);
   if (!root) return;
-  const input = root.querySelector('input[type="file"]');
-  const drop = root.querySelector('.vision-drop');
+  const input = root.querySelector('input[name="image"], #image-input') || root.querySelector('input[type="file"]');
+  const videoInput = root.querySelector('#video-input');
+  const drop = root.querySelector('.vision-drop:not(.vision-drop-video)');
+  const videoDrop = root.querySelector('.vision-drop-video');
   const previewWrap = root.querySelector('.vision-preview-wrap');
   const previewImg = root.querySelector('.vision-preview-wrap img');
   const sourceBadge = root.querySelector('.vision-source-badge');
@@ -281,7 +331,7 @@ function setupVisionInput(rootId) {
 
   const setSource = (kind, name) => {
     if (!sourceBadge) return;
-    const labels = { none: 'No image', upload: 'Uploaded', simulator: 'Simulator cam' };
+    const labels = { none: 'No image', upload: 'Uploaded', video: 'Video MP4', simulator: 'Simulator cam' };
     sourceBadge.textContent = name ? `${labels[kind] || kind} · ${name}` : (labels[kind] || kind);
     sourceBadge.classList.toggle('live', kind !== 'none');
   };
@@ -298,6 +348,7 @@ function setupVisionInput(rootId) {
 
   const clearPreview = () => {
     if (input) input.value = '';
+    if (videoInput) videoInput.value = '';
     if (previewWrap) previewWrap.classList.remove('has-image');
     if (previewImg) previewImg.removeAttribute('src');
     setSource('none');
@@ -323,8 +374,21 @@ function setupVisionInput(rootId) {
     input.addEventListener('change', () => {
       const file = input.files[0];
       if (!file) return clearPreview();
+      if (videoInput) videoInput.value = '';
       showPreview(file);
       setSource('upload', file.name);
+    });
+  }
+
+  if (videoDrop && videoInput) {
+    videoDrop.addEventListener('click', () => videoInput.click());
+    videoInput.addEventListener('change', () => {
+      const file = videoInput.files[0];
+      if (!file) return;
+      if (input) input.value = '';
+      if (previewWrap) previewWrap.classList.remove('has-image');
+      if (previewImg) previewImg.removeAttribute('src');
+      setSource('video', file.name);
     });
   }
 
@@ -368,4 +432,5 @@ window.VialPilot = {
   API, escapeHtml, pollRun, runProgress, renderStepper, renderLatencyChart, drawAnnotations,
   renderAgentCards, renderSafetyCards, renderCommandList, renderTimeline,
   setupDropZone, setupVisionInput, confirmHuman, mediaUrl, llmLabel,
+  renderSpeedPanel, runSpeedBenchmark,
 };

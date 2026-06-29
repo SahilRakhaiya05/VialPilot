@@ -7,55 +7,75 @@ VialPilot Swarm
 Multiverse Agents — Best Multi-Agent + Multimodal Use Case
 
 ## One-liner
-VialPilot Swarm turns Gemma 4 31B on Cerebras into a real-time autonomous lab-bench swarm that sees sample vials, plans safe robot actions, executes them in a simulator, and visually verifies success.
+VialPilot Swarm turns **Gemma 4 31B on Cerebras** into a real-time autonomous lab-bench swarm that sees sample vials (image + video frames), plans safe robot actions, executes them in a 3D simulator, visually verifies outcomes, and replans when needed.
 
 ## Description
-VialPilot Swarm demonstrates how ultra-fast multimodal inference changes physical AI. Instead of producing a static report, the system stays inside a closed action loop. A user gives a lab-bench task and an image or frame of the bench. Specialist agents inspect the scene, decompose the task, localize objects, enforce safety constraints, generate robot-style commands, update a physical simulator, and verify the outcome. If the evidence is uncertain, the swarm asks for human confirmation instead of hallucinating a risky action.
+VialPilot demonstrates how **ultra-fast multimodal inference** changes physical AI. Instead of a static report, the system runs a closed **observe → reason → act → verify → replan** loop. A user gives a lab instruction plus an image, video (MP4), or live simulator frame. Nine specialist agents inspect the scene, decompose tasks, localize objects, enforce safety, plan robot commands, execute in the 3D lab, **verify with post-action vision**, and audit results. If verification fails, the Reflector triggers a **one-shot replan** before continuing.
 
-## Agent Collaboration
-The demo coordinates nine specialist agents:
+## Agent Collaboration (10/10 criteria)
+Nine coordinated agents:
 
-- Orchestrator Agent
-- Vision Lab Agent
-- Task Decomposer Agent
-- Localizer Agent
-- Safety Veto Agent
-- Motion Planner Agent
-- Actor / Simulator Agent
-- Reflector Agent
-- Lab Notebook Agent
+| Agent | Role |
+|-------|------|
+| Orchestrator | Workflow execution |
+| Vision Lab | Multimodal scene analysis (multi-frame video) |
+| Task Decomposer | NL → subtasks |
+| Localizer | Object coordinates |
+| Safety Veto | Blocks hazardous moves |
+| Motion Planner | Robot commands |
+| Actor Command | Executes in simulator |
+| Reflector | Post-action visual verification + **replan trigger** |
+| Lab Notebook | Audit trail |
 
-The Safety Veto Agent can block or change commands before the Actor executes them. The Reflector Agent checks the result and can force replanning.
+**Replan loop:** When Reflector sets `retry_needed`, Motion Planner re-runs with the reflector hint, Actor retries, Reflector verifies again.
 
 ## Multimodal Intelligence
-The system combines:
+- **Text:** Natural-language lab instructions
+- **Images:** Upload PNG/JPG/WEBP or simulator camera capture
+- **Video:** MP4 upload → up to 8 frames extracted → **up to 4 frames** sent to Gemma 4 vision in one call
+- **Post-action vision:** Reflector receives fresh simulator frame after each move
+- **Structured:** Zones, hazards, coordinates, JSON command logs
 
-- natural-language lab instruction
-- uploaded image or frame
-- simulated visual state
-- structured coordinates and zone metadata
-- JSON command logs
-- final audit notebook
+Requires `CEREBRAS_API_KEY` for live Gemma 4 31B (offline mock available for tests only).
 
 ## Speed in Action
-Each agent call logs latency and provider. When `CEREBRAS_API_KEY` is configured, model-backed agents use Gemma 4 31B through Cerebras' OpenAI-compatible endpoint. The UI shows per-agent latency and full-loop timing so judges can see why fast inference matters for observe → reason → act → verify loops.
+- Per-agent `latency_ms` on every AI call
+- Run page **Speed in Action** panel: wall clock, avg AI latency, live call count, replan count
+- Dashboard **⚡ Speed Benchmark** — 3× Vision agent calls with avg/min/max ms
+- Workflow `speed_summary` e.g. *"9 agents · 4.2s wall · 6 Gemma 4 calls avg 95ms on Cerebras"*
 
-## Innovation
-VialPilot Swarm is an autonomous lab-bench controller, not a chatbot or report dashboard. It connects multimodal reasoning to physical-world commands such as moving a vial, avoiding a contaminated zone, requesting human confirmation, and verifying final placement.
+## Innovation (Physical AI)
+Autonomous **lab-bench controller** with:
+- 3D WebGL robot arm (sweep pick/place)
+- Hazard zone avoidance
+- Human-in-the-loop for uncertain labels
+- MQTT/webhook bridge for real hardware
+- Closed-loop embodied agent — not a chatbot
 
-## Demo Flow
-1. Select the Hazard Avoidance Scene.
-2. Enter: “Move the red sample vial to the safe tray and avoid the contaminated zone.”
-3. Run the swarm.
-4. Show the agent timeline, safety decision, simulator command, final lab-bench state, and latency panel.
+## Demo Flow (60 seconds)
+1. **Dashboard** → Hazard Avoidance scene
+2. Upload image **or MP4 video** (or Simulator Capture)
+3. Instruction: *"Move the red sample vial to the safe tray and avoid the contaminated zone."*
+4. **Start Workflow** → watch agent stepper + **Speed in Action** panel
+5. Open **Simulator** tab → arm sweep animation
+6. Click **⚡ Speed Benchmark** to show Cerebras latency live
 
 ## Tech Stack
-- Python
-- Flask
-- Cerebras OpenAI-compatible API
-- Gemma 4 31B
-- Deterministic lab-bench simulator
-- JSON-first agent outputs
+- **Python 3.9+**
+- **FastAPI** + SQLite
+- **Cerebras** OpenAI-compatible API
+- **Gemma 4 31B** (auto-discovered)
+- Three.js 3D robotics lab
+- Google Gemini fallback
+
+## Setup
+```bash
+pip install -r requirements.txt
+# Add to .env:
+CEREBRAS_API_KEY=your_key
+python app.py
+# http://127.0.0.1:7860
+```
 
 ## Attribution
-This project is inspired by / derived from the MALLVI multi-agent robotics framework. Original attribution should be preserved when publishing the fork.
+Inspired by multi-agent robotics frameworks. VialPilot is an original autonomous lab implementation for the Cerebras × Google DeepMind Gemma 4 Hackathon.

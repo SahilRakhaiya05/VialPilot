@@ -165,7 +165,7 @@ class SoftwareRobotBackend:
             "scene_id": self.scene_id,
             "scene": self.serialize(),
             "arm": {
-                "target": {"x": tx, "y": 0.42, "z": tz},
+                "target": {"x": tx, "y": 0.40, "z": tz},
                 "gripper_open": self.gripper_open,
                 "holding": self.holding,
                 "joints": [j1, j2, j3, 0.0, 0.0, 0.0],

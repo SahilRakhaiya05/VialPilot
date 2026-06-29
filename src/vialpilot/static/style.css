@@ -707,6 +707,28 @@ pre {
 .panel-head h2 { margin: 0; font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); }
 .run-lab3d { height: 320px; border-radius: 0; border: none; }
 .run-stats { margin-bottom: 20px; }
+
+.speed-hero {
+  margin-bottom: 20px;
+  padding: 18px 22px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.12) 0%, rgba(59, 130, 246, 0.08) 100%);
+}
+.speed-hero.live { border-color: rgba(20, 184, 166, 0.45); }
+.speed-hero h3 { margin: 0 0 6px; font-size: 1rem; font-weight: 700; }
+.speed-hero p { margin: 0; color: var(--muted); font-size: 0.9rem; line-height: 1.45; }
+.speed-hero-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 12px;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+.speed-hero-metrics strong { color: var(--accent-light); }
+.speed-benchmark-row { display: flex; align-items: center; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
+.speed-benchmark-result { font-size: 0.82rem; color: var(--muted); }
 .empty-state { padding: 24px; text-align: center; }
 .confidence-bar { height: 4px; background: var(--line); border-radius: 4px; overflow: hidden; }
 .confidence-bar div { height: 100%; background: var(--accent); border-radius: 4px; }
@@ -1271,6 +1293,8 @@ pre code { background: none; border: none; padding: 0; color: inherit; font-size
 }
 .vision-source-badge.live { background: var(--ok-bg); color: var(--ok); border-color: rgba(93, 154, 114, 0.3); }
 .vision-input-body { display: grid; grid-template-columns: 1fr 140px; gap: 0; }
+.vision-drop-video { min-height: 72px; }
+.mt-8 { margin-top: 8px; }
 .vision-drop {
   padding: 24px 20px;
   text-align: center;

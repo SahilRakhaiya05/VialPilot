@@ -28,15 +28,23 @@ class LabNotebookAgent:
             if o.get("agent_name") == "SafetyVetoAgent" and o.get("status") == "blocked"
         )
         total_latency = sum(o.get("latency_ms", 0) for o in agent_outputs)
+        replans = sum(
+            1 for o in agent_outputs
+            if "replan" in (o.get("agent_name") or "").lower()
+        )
         data = {
             "project": "VialPilot",
             "scene": scene_name,
             "instruction": instruction,
             "actions_verified": verified,
             "safety_blocks": blocked,
+            "replan_attempts": replans,
             "llm_provider": get_active_provider(),
             "total_latency_ms": round(total_latency, 2),
-            "final_summary": f"Completed {verified} verified action(s) with {blocked} safety block(s).",
+            "final_summary": (
+                f"Completed {verified} verified action(s) with {blocked} safety block(s)"
+                + (f" and {replans} replan(s)." if replans else ".")
+            ),
             "final_state": final_state,
         }
         return local_output(

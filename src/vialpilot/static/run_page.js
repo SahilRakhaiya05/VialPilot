@@ -132,6 +132,7 @@ const RunPage = {
     V.renderCommandList(run.commands, 'command-list');
     V.renderTimeline(events, 'event-timeline');
     V.renderLatencyChart(run.latency_metrics);
+    if (V.renderSpeedPanel) V.renderSpeedPanel(run.latency_metrics);
 
     this._renderVision(run);
     this._render3d(run);
@@ -160,7 +161,7 @@ const RunPage = {
     }
     if (src === '/simulator/frame.png' && frames.length) {
       src = vp().mediaUrl(frames[0]);
-      source = 'Video frame';
+      source = frames.length > 1 ? `Video · ${frames.length} frames` : 'Video frame';
     }
 
     const vision = run.visual_observations || {};

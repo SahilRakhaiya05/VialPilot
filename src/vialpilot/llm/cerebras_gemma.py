@@ -4,10 +4,11 @@ from __future__ import annotations
 import base64
 import logging
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from src.vialpilot.config import CEREBRAS_API_KEY, CEREBRAS_BASE_URL, CEREBRAS_MODEL
 from src.vialpilot.llm.cerebras_models import GEMMA4_DEFAULT_MODEL, resolve_gemma4_model
+from src.vialpilot.llm.images import ImageFrame, normalize_frames
 from src.vialpilot.models.schemas import LLMResult
 from src.vialpilot.utils.json_parse import extract_json
 
@@ -45,6 +46,7 @@ class CerebrasGemmaClient:
         fallback_json: Dict[str, Any],
         image_bytes: Optional[bytes] = None,
         image_mime: str = "image/png",
+        images: Optional[List[ImageFrame]] = None,
         temperature: float = 1.0,
     ) -> LLMResult:
         if not self.enabled or self._client is None:
@@ -60,19 +62,15 @@ class CerebrasGemmaClient:
         messages: List[Dict[str, Any]] = [
             {"role": "system", "content": system_prompt + "\nReturn strict JSON only."},
         ]
-        if image_bytes:
-            if image_mime not in ("image/png", "image/jpeg", "image/jpg"):
-                image_mime = "image/png"
-            data_url = f"data:{image_mime};base64,{base64.b64encode(image_bytes).decode('utf-8')}"
-            messages.append(
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": user_prompt},
-                        {"type": "image_url", "image_url": {"url": data_url}},
-                    ],
-                }
-            )
+        frame_list = normalize_frames(image_bytes, image_mime, images)
+        if frame_list:
+            content: List[Dict[str, Any]] = [{"type": "text", "text": user_prompt}]
+            for data, mime in frame_list:
+                if mime not in ("image/png", "image/jpeg", "image/jpg"):
+                    mime = "image/png"
+                data_url = f"data:{mime};base64,{base64.b64encode(data).decode('utf-8')}"
+                content.append({"type": "image_url", "image_url": {"url": data_url}})
+            messages.append({"role": "user", "content": content})
         else:
             messages.append({"role": "user", "content": user_prompt})
 

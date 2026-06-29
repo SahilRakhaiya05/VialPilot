@@ -51,6 +51,12 @@
       <div class="stat-card"><div class="value stat-sm" id="stat-llm">—</div><div class="label">AI Model</div></div>
     </div>
 
+    <div class="speed-hero" id="speed-hero">
+      <h3 id="speed-headline">Speed in Action</h3>
+      <p id="speed-summary">Waiting for workflow metrics…</p>
+      <div class="speed-hero-metrics" id="speed-metrics"></div>
+    </div>
+
     <div class="run-tabs">
       <button class="run-tab active" data-tab="overview">Overview</button>
       <button class="run-tab" data-tab="agents">Agents</button>
@@ -125,9 +131,9 @@
 </div>
 {% endblock %}
 {% block extra_scripts %}
-<script src="/static/lab3d.js?v=22"></script>
-<script src="/static/simulator.js?v=22"></script>
-<script src="/static/run_page.js?v=22"></script>
+<script src="/static/lab3d.js?v=28"></script>
+<script src="/static/simulator.js?v=28"></script>
+<script src="/static/run_page.js?v=28"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   if (!window.VialPilot) {

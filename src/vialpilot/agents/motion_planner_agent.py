@@ -14,7 +14,13 @@ Return JSON: {"command":"","object_id":"","from":"","to":"","parameters":{},"rea
 class MotionPlannerAgent:
     name = "MotionPlannerAgent"
 
-    def run(self, subtask: Dict[str, Any], safety: Dict[str, Any], localizer: Dict[str, Any]) -> AgentOutput:
+    def run(
+        self,
+        subtask: Dict[str, Any],
+        safety: Dict[str, Any],
+        localizer: Dict[str, Any],
+        retry_hint: str = "",
+    ) -> AgentOutput:
         if not safety.get("allow", False):
             command = {
                 "command": "REQUEST_HUMAN_CONFIRMATION",
@@ -36,7 +42,8 @@ class MotionPlannerAgent:
                 },
                 "reason": subtask.get("goal", "Execute safe movement."),
             }
-        prompt = f"Subtask: {subtask}\nSafety: {safety}\nLocalizer: {localizer}"
+        hint = f"\nReplan hint: {retry_hint}" if retry_hint else ""
+        prompt = f"Subtask: {subtask}\nSafety: {safety}\nLocalizer: {localizer}{hint}"
         llm = run_json(agent_name=self.name, system_prompt=SYSTEM, user_prompt=prompt, fallback_json=command)
         return from_llm(
             self.name,

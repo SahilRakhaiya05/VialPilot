@@ -47,13 +47,28 @@
 <section class="panel panel-elevated panel-spaced panel-ok">
   <h2>Live AI Active</h2>
   <p class="hint">Provider <code>{{ settings.active_provider }}</code> — all agents use real inference.</p>
-  <a href="/dashboard" class="btn-primary mt-16">Start Workflow</a>
+  <div class="speed-benchmark-row">
+    <button type="button" class="btn-primary" id="btn-settings-bench">⚡ Speed Benchmark</button>
+    <p class="hint speed-benchmark-result" id="settings-bench-result" hidden></p>
+  </div>
+  <a href="/dashboard" class="btn mt-16">Start Workflow</a>
 </section>
 {% endif %}
+
+<section class="panel panel-elevated panel-spaced">
+  <h2>Cerebras Speed Demo</h2>
+  <p class="hint">Run 3× Gemma 4 vision calls to measure avg/min/max latency — works in mock mode without an API key.</p>
+  <div class="speed-benchmark-row">
+    <button type="button" class="btn" id="btn-settings-bench-offline">⚡ Run Benchmark</button>
+    <p class="hint speed-benchmark-result" id="settings-bench-offline-result" hidden></p>
+  </div>
+</section>
 <script>
 fetch('/api/models/cerebras').then(r=>r.json()).then(m=>{
   const el=document.getElementById('gemma4-model');
   if(el) el.textContent=m.resolved_model + (m.api_key_configured?' (live)':' (add key)');
 });
+document.getElementById('btn-settings-bench')?.addEventListener('click', () => VialPilot.runSpeedBenchmark('settings-bench-result'));
+document.getElementById('btn-settings-bench-offline')?.addEventListener('click', () => VialPilot.runSpeedBenchmark('settings-bench-offline-result'));
 </script>
 {% endblock %}
