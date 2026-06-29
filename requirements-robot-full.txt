@@ -1,0 +1,4 @@
+# Optional PyBullet physics (Linux/Docker only)
+-r requirements-robot-lite.txt
+pybullet>=3.2.5
+gym==0.21.0; platform_system != "Windows"

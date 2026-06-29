@@ -1,0 +1,15 @@
+services:
+  vialpilot:
+    build:
+      context: .
+      dockerfile: Dockerfile.simulator
+    ports:
+      - "7860:7860"
+      - "8050:8050"
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+    environment:
+      - SIMULATOR_MODE=auto
+      - APP_MODE=production
