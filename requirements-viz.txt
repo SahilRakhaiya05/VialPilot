@@ -1,6 +1,2 @@
-# MALLVI Pipeline Analyzer (Dash GUI) — install alongside requirements.txt
-dash>=3.0.0
-dash-bootstrap-components>=2.0.0
-plotly>=6.0.0
-pandas>=2.0.0
-requests>=2.28.0
+# Deprecated — use requirements.txt instead
+-r requirements.txt

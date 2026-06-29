@@ -12,15 +12,11 @@ if (-not (Test-Path ".venv")) {
     python -m venv .venv
 }
 
-Write-Host "[1/3] Core app dependencies..." -ForegroundColor Cyan
+Write-Host "[1/2] Installing dependencies (requirements.txt)..." -ForegroundColor Cyan
 & $pip install -r requirements.txt
 if ($LASTEXITCODE -ne 0) { Write-Host "WARN: requirements.txt had issues" -ForegroundColor Yellow }
 
-Write-Host "[2/3] Simulator dependencies..." -ForegroundColor Cyan
-& $pip install -r requirements-robot-lite.txt
-if ($LASTEXITCODE -ne 0) { Write-Host "WARN: some robot deps failed" -ForegroundColor Yellow }
-
-Write-Host "[3/3] Verifying software robot..." -ForegroundColor Cyan
+Write-Host "[2/2] Verifying software robot..." -ForegroundColor Cyan
 & $python scripts\verify_simulator.py
 
 if ($LASTEXITCODE -eq 0) {

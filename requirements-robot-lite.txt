@@ -1,9 +1,2 @@
-# Robot simulator extras (Windows-safe — no pybullet/gym compile)
-gymnasium>=1.0.0
-einops
-dm-tree
-transforms3d
-importlib_resources
-matplotlib
-imageio
-tqdm
+# Deprecated — use requirements.txt instead
+-r requirements.txt

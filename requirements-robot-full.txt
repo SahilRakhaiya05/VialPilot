@@ -1,4 +1,4 @@
-# Optional PyBullet physics (Linux/Docker only)
--r requirements-robot-lite.txt
-pybullet>=3.2.5
-gym==0.21.0; platform_system != "Windows"
+# Deprecated — use requirements.txt for core install.
+# Optional PyBullet physics (Linux/Docker only):
+#   pip install pybullet>=3.2.5
+-r requirements.txt

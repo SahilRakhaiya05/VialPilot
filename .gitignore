@@ -27,6 +27,9 @@ terminals/
 agent-tools/
 mcps/
 
+# Node (Three.js local dev only)
+node_modules/
+
 # Misc
 VIMABench/
 VIMABench.zip

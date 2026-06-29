@@ -12,7 +12,7 @@ VialPilot Swarm turns **Gemma 4 31B on Cerebras** into a real-time autonomous la
 ## Description
 VialPilot demonstrates how **ultra-fast multimodal inference** changes physical AI. Instead of a static report, the system runs a closed **observe → reason → act → verify → replan** loop. A user gives a lab instruction plus an image, video (MP4), or live simulator frame. Nine specialist agents inspect the scene, decompose tasks, localize objects, enforce safety, plan robot commands, execute in the 3D lab, **verify with post-action vision**, and audit results. If verification fails, the Reflector triggers a **one-shot replan** before continuing.
 
-## Agent Collaboration (10/10 criteria)
+## Agent Collaboration
 Nine coordinated agents:
 
 | Agent | Role |
@@ -42,7 +42,7 @@ Requires `CEREBRAS_API_KEY` for live Gemma 4 31B (offline mock available for tes
 - Per-agent `latency_ms` on every AI call
 - Run page **Speed in Action** panel: wall clock, avg AI latency, live call count, replan count
 - Dashboard **⚡ Speed Benchmark** — 3× Vision agent calls with avg/min/max ms
-- Workflow `speed_summary` e.g. *"9 agents · 4.2s wall · 6 Gemma 4 calls avg 95ms on Cerebras"*
+- Workflow `speed_summary` e.g. *"9 agents · 4.2s wall · 6 Gemma 4 calls avg 850ms on Cerebras"*
 
 ## Innovation (Physical AI)
 Autonomous **lab-bench controller** with:

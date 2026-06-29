@@ -8,8 +8,7 @@ source .venv/bin/activate
 pip install --upgrade pip wheel
 
 pip install -r requirements.txt
-pip install -r requirements-robot-lite.txt
-pip install -r requirements-robot-full.txt || true
+pip install pybullet>=3.2.5 || true
 
 python scripts/verify_simulator.py
 echo "Start: python app.py"
